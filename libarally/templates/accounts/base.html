@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <nav>
+            <a href="{%url 'accounts:regist'}">登録画面</a>
+        </nav>
+        <div>
+            {% block content %}
+            {% endblock %}
+        </div>
+    </body>
+</html>

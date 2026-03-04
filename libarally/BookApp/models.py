@@ -8,6 +8,6 @@ class BaseModel(models.Model):
         abstract = True
 
 class Book(BaseModel):
-    isbn = models.IntegerField(max_length=13)
+    isbn = models.IntegerField
 
 
