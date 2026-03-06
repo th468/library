@@ -10,3 +10,5 @@ class BookListView(ListView):
     template_name = "Book_list.html"
 
 
+def index(request):
+    return render(request, "accounts/index.html")

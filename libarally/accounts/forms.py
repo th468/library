@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
+#登録、管理用
 class UserCreationForm(forms.ModelForm):
     password1 = forms.CharField(label="パスワード", widget=forms.PasswordInput)
     password2 = forms.CharField(label="パスワード(確認)", widget=forms.PasswordInput)
@@ -18,10 +19,11 @@ class UserCreationForm(forms.ModelForm):
         password2 = cleaned_data.get("password2")
         if password1 != password2:
             raise ValidationError("パスワードが一致しません")
+        return cleaned_data
         
-    def save(self, commit = False):
+    def save(self, commit = True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data.get(self, "password1"))
+        user.set_password(self.cleaned_data.get("password1"))
         user.save()
         return user
     
@@ -33,8 +35,16 @@ class UserChangeForm(forms.ModelForm):
         model = User
         fields = ("em_num", "email", "password", "is_active", "is_staff", "is_superuser")
 
-    def clean_password(self):
-        return self.instance.password
+
+
+
+# ログイン用
+class UserLoginForm(forms.Form):
+    email = forms.EmailField(label="メールアドレス",max_length=255) 
+    password = forms.CharField(
+        label="パスワード", widget=forms.PasswordInput
+        )
+
     
 
 
