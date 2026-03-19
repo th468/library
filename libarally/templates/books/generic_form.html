@@ -1,0 +1,19 @@
+{% extends "books/base.html" %}
+{% block content %}
+<h2>{{ title|default:"データ登録"}}</h2>
+
+<form method="post" novalidate>
+    {% csrf_token%}
+
+    {% for field in form %}
+        <div class="md3"><label class="form-label">{{ field.label }}</label>
+            {{ field }} {{% if field.errors %}}
+                <div class="text-danger small"></div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">保存</button>
+</form>
+<a href="{{ cancel_url }}">キャンセル</a>
+{% endblock content %}

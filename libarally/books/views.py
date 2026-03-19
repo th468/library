@@ -1,7 +1,10 @@
-from django.shortcuts import render
-from django.views.generic import ListView,DetailView
+from django.urls import reverse_lazy
+from django.shortcuts import render,redirect
+from django.views.generic import ListView,DetailView,TemplateView
+from django.views.generic import CreateView
 from django.db.models import Q
-from .models import Book
+from .models import Book, Biblio, Shelf, Floor
+from .forms import BookForm, BiblioForm, ShelfForm, FllorForm
 
 def index(request):
     return render(request, "books/index.html")
@@ -43,4 +46,48 @@ class BookDetailView(DetailView):
     model = Book
     template_name = "books/book_detail.html"
     context_object_name = "book"
+
+#登録インデックス
+class ManageIndexView(TemplateView):
+    template_name = "books/manage_index.html"
+
+#蔵書登録
+class BookCreateView(CreateView):
+    model = Book
+    form_class = BookForm
+    template_name = "books/book_form.html"
+    success_url = reverse_lazy("books:manageindex")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "蔵書登録"
+        context["cancel_url"] = reverse_lazy("books:manageindex")
+        return context
+    
+class BiblioCreateView(CreateView):
+    model = Biblio
+    form_class = BiblioForm
+    template_name = "books/generic_form.html"
+    success_url = reverse_lazy("books:manageindex")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "書誌情報登録"
+        context["cancel_url"] = reverse_lazy("books:manageindex")
+        return context
+
+class ShelfCreateView(CreateView):
+    model = Shelf
+    form_class = ShelfForm
+    template_name = "books/generic_form.html"
+    success_url = reverse_lazy("books:manageindex")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "本棚登録"
+        context["cancel_url"] = reverse_lazy("books:manageindex")
+        return context
+    
+
+    
 

@@ -1,0 +1,10 @@
+{% extends "books/base.html" %}
+{% block content %}
+<h2>書籍の登録</h2>
+<form method="post">
+    {% csrf_token%}
+    {{ form.as_p }}
+    <button type="submit">登録する</button>
+</form>
+<a href="{% url "books:booklist" %}">書籍一覧へ戻る</a>
+{% endblock content %}

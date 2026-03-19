@@ -11,14 +11,14 @@ class BaseModel(models.Model):
         abstract = True
 
 
-#書籍
+#蔵書情報のモデル
 class Book(BaseModel):
     biblio = models.ForeignKey("Biblio", on_delete=models.PROTECT, related_name="book")
     shelf = models.ForeignKey("Shelf", on_delete=models.PROTECT, related_name="book")
     count =models.IntegerField(editable=False)
     is_available = models.BooleanField(default=True)
     def __str__(self):
-        return self.biblio.title
+        return f"{self.biblio.title},{self.count}"
     def get_absolute_url(self):
         return reverse("books:bookdetail", kwargs={"pk": self.pk})
     #　書籍登録時に既に同一の書誌情報を持つ書籍が存在する場合、countを自動的に増加させる
@@ -34,11 +34,11 @@ class Book(BaseModel):
         
 
     class Meta:
-        verbose_name_plural = "書籍"
+        verbose_name_plural = "蔵書情報"
         unique_together = ("biblio", "count")
     
 
-
+#書誌情報のモデル
 class Biblio(BaseModel):
     isbn = models.CharField(max_length=255, primary_key= True)
     title = models.CharField(max_length=255)
@@ -53,7 +53,7 @@ class Biblio(BaseModel):
         verbose_name_plural = "書誌情報"
 
 
-
+#本棚情報のモデル
 class Shelf(BaseModel):
     name = models.CharField(max_length=255)
     floor = models.ForeignKey("Floor", on_delete=models.PROTECT, related_name="shelf")
@@ -63,7 +63,7 @@ class Shelf(BaseModel):
     class Meta:
         verbose_name_plural = "本棚情報"
 
-
+#階情報のモデル
 class Floor(BaseModel):
     name = models.CharField(max_length=255)
     def __str__(self):

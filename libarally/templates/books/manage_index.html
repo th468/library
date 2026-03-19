@@ -1,0 +1,40 @@
+{% extends "books/base.html" %}
+
+{% block content %}
+<div class="py-5 text-center">
+    <h1 class="display-5 fw-bold">蔵書管理システム</h1>
+    <p class="lead">必要な操作を選択してください。</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">書籍登録</h5>
+                <p class="card-text text-muted">手元にある本を棚に登録します。</p>
+                <a href="{% url 'books:book_create' %}" class="btn btn-primary">登録画面へ</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">書誌データ作成</h5>
+                <p class="card-text text-muted">本の基本情報（タイトル・ISBN等）を作成します。</p>
+                <a href="{% url 'books:biblio_create' %}" class="btn btn-outline-primary">作成画面へ</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">本棚管理</h5>
+                <p class="card-text text-muted">新しい本棚や保管場所を追加します。</p>
+                <a href="{% url 'books:shelf_create' %}" class="btn btn-outline-secondary">追加画面へ</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
