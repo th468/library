@@ -17,7 +17,7 @@ class BaseForm(forms.ModelForm):
 class BookForm(BaseForm):
     class Meta:
         model = Book
-        fields = ["biblio","shelf","is_available"]
+        fields = ["biblio","shelf",]
 
 
 class BiblioForm(BaseForm):

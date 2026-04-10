@@ -27,11 +27,36 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser,PermissionsMixin):
-
-    em_num = models.CharField(max_length=150)
-    email = models.EmailField(max_length=255, unique=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    #region フィールド定義
+    em_num = models.CharField(
+        verbose_name="社員番号", 
+        max_length=150, 
+        unique=True
+        )
+    email = models.EmailField(
+        verbose_name="メールアドレス", 
+        max_length=255, 
+        unique=True
+        )
+    is_active = models.BooleanField(
+        verbose_name="有効なユーザーか", 
+        default=True
+        )
+    is_staff = models.BooleanField(
+        verbose_name="管理者か",
+        default=False)
+    
+    lending_limit = models.PositiveIntegerField(
+        verbose_name="貸出上限冊数", 
+        default=5,
+        help_text="ユーザーが同時に借りられる最大冊数です。"
+    )
+    lending_period_days = models.PositiveIntegerField(
+        verbose_name="貸出可能日数", 
+        default=14,
+        help_text="このユーザーが一度の貸出で借りられる日数です。"
+    )
+    #endregion
 
     objects= UserManager()
     
@@ -41,3 +66,17 @@ class User(AbstractBaseUser,PermissionsMixin):
     def __str__(self):
         return self.email
     
+    @property
+    def active_lending_count(self):
+        """現在の貸出中件数を返す"""
+        # 循環参照を避けるためメソッド内でインポート
+        from transactions.models import Lending
+        return self.lendings.filter(return_date__isnull=True).count()
+
+    def can_lend(self):
+        """貸出可能ならTrue、上限ならFalseを返す"""
+        return self.active_lending_count < self.lending_limit
+
+    class Meta:
+        verbose_name = "ユーザー"
+        verbose_name_plural = "ユーザー"

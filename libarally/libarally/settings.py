@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "BookApp",
     "accounts",
     "books",
-
+    "transactions",
 ]
 
 MIDDLEWARE = [

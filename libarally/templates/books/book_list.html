@@ -8,9 +8,7 @@ placeholder="タイトル、著者名、ISBNから検索">
 </form>
 
 
-
-
-<h1>{{page_title}}</h1>
+<h2>{{page_title}}</h2>
 
 <table>
     <thead>
@@ -27,7 +25,18 @@ placeholder="タイトル、著者名、ISBNから検索">
                 {{book.biblio.title}}</a></td>
             <td>{{book.biblio.author}}</td>
             <td>{{book.is_available|yesno:"貸出可,貸出中" }}</td>
+            {% if user.is_staff %}
+                <td>
+                    <a href="{% url "books:book_update" book.pk %}" class="btn btn-primary">
+                        編集する
+                    </a>
+                    <a href="{% url "books:book_delete" book.pk %}" class="btn btn-outline-danger">
+                        削除
+                    </a>
+                </td>
+            {% endif %}
         </tr>
+        
         {% endfor %}
     </tbody>
 </table>

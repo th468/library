@@ -1,0 +1,16 @@
+{% extends "books/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{{title}}</h2>
+    <p class="text-danger">本当に「<strong>{{ object }}</strong>」を削除してもよろしいですか？</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mt-4">
+            <button type="submit" class="btn btn-danger">削除を確定する</button>
+            <a href="{{ cancel_url }}">キャンセル</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

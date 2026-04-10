@@ -1,10 +1,13 @@
 {% extends "books/base.html" %}
 {% block content %}
 
+<div style="background: yellow; color: black;">
+  debug: list_url is "{{ list_url }}" <br>
+  debug: url_header is "{{ url_header }}"
+</div>
 
 
-
-<h1>{{ book.biblio.title }}</h1>
+<h2>{{ book.biblio.title }}</h2>
 
 <table>
     <thead>
@@ -22,6 +25,18 @@
         </tr>
     </tbody>
 </table>
+
+{% if user.is_staff %}
+    <div>
+        <a href="{% url "books:book_update" book.pk %}" class="btn btn-primary">
+            編集する
+        </a>
+        <a href="{% url "books:book_delete" book.pk %}" class="btn btn-outline-danger">
+            削除
+        </a>
+    </div>
+{% endif %}
+
 {% if request.GET.q %}
     <a href="{% url "books:booklist" %}?q={{ request.GET.q}}">検索結果に戻る</a>
 {% else %}
@@ -29,4 +44,4 @@
 {% endif %}
 
 
-{% endblock content %}
+{% endblock %}

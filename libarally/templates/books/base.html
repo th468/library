@@ -17,7 +17,10 @@
                 {% endif %}
                 <a href="{% url 'accounts:info' %}">ユーザー画面</a>
                 <a href="{% url 'books:booklist' %}">書籍一覧</a>
+                <a href="{% url 'books:biblio_list' %}">書誌情報一覧</a>
+                {% if user.is_staff %}
                 <a href="{% url 'books:manageindex' %}">管理画面</a>
+                {% endif %}
                 
             </nav>
             <div class="mb-3">{{ user }}: {{user.is_authenticated }}</div>
