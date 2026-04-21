@@ -1,9 +1,10 @@
-{% extends "accounts/base.html" %}
-{% block content %}
-<h1>登録画面</h1>
-<form method="POST">
-    {% csrf_token %}
-    {{ user_form.as_p }}
-    <input type="submit" value="登録">
-</form>
-{% endblock content %}
+{% extends "common/layouts/centered_card.html" %}
+
+{% block title %}利用者登録{% endblock %}
+
+{% block content  %}
+{% include "common/includes/_form.html" %}
+{% endblock  %}
+
+
+

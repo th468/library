@@ -13,7 +13,7 @@ def regist(request):
     if user_form.is_valid():
         user_form.save()
     return render(request, "accounts/registration.html", context={
-            "user_form": user_form,
+            "form": user_form,
     })
 
 
