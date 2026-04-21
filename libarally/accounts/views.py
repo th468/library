@@ -40,7 +40,7 @@ def login_view(request):
 
 
     return render(request,"accounts/login.html", context={
-        "login_form": login_form,
+        "form": login_form,
         "next_url": next_url
     })
 

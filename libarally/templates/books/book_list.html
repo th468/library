@@ -1,43 +1,28 @@
-{% extends "books/base.html" %}
-{% block content %}
+{% extends "common/layouts/wide_list" %}
 
-<form method="GET" action="">
-<input type="text" name="q"value="{{ query }}"
-placeholder="タイトル、著者名、ISBNから検索">
-<button type="submit">検索</button>
-</form>
+{% block list_title %}蔵書一覧{% endblock %}
 
+{% block list_actions %}
+    <p>本を登録</p>
+{% endblock %}
 
-<h2>{{page_title}}</h2>
-
-<table>
-    <thead>
-        <tr>
-            <th>タイトル</th>
-            <th>著者</th>
-            <th>利用可否</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for book in books %}
-        <tr>
-            <td><a href="{{ book.get_absolute_url }}?q={{ request.GET.q}}">
-                {{book.biblio.title}}</a></td>
-            <td>{{book.biblio.author}}</td>
-            <td>{{book.is_available|yesno:"貸出可,貸出中" }}</td>
-            {% if user.is_staff %}
-                <td>
-                    <a href="{% url "books:book_update" book.pk %}" class="btn btn-primary">
-                        編集する
-                    </a>
-                    <a href="{% url "books:book_delete" book.pk %}" class="btn btn-outline-danger">
-                        削除
-                    </a>
-                </td>
-            {% endif %}
-        </tr>
-        
-        {% endfor %}
-    </tbody>
-</table>
-{% endblock content %}
+{% block list_content %}
+    <table class="table table-hover bg-white shadow-sm rounded">
+        <thead class="table-light">
+            <tr>
+                <th>タイトル</th>
+                <th>著者</th>
+                <th>ステータス</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td><span class="badge bg-success">貸出可</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

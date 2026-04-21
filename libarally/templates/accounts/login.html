@@ -1,14 +1,10 @@
-{% extends "accounts/base.html" %}
-{% block content %}
-<h1>ログイン画面</h1>
-<form method="POST">
-    {% csrf_token %}
-    {{ login_form.as_p }}
+{% extends "common/layouts/centered_card.html" %}
 
-    {% if next %}
-        <input type="hidden" name="next" value="{{ next }}">
-    {% endif %}
-    
-    <input type="submit" value="ログイン">
-</form>
-{% endblock content %}
+{% block title %}ログイン{% endblock %}
+
+{% block content  %}
+{% include "common/includes/_form.html" %}
+{% endblock  %}
+
+
+
