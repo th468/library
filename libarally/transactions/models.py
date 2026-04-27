@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.conf import settings
 
 class TransactionBase(models.Model):
     created_at = models.DateTimeField("申請日", auto_now_add=True)
@@ -48,6 +49,15 @@ class LendingManager(models.Manager):
         with transaction.atomic():
             from books.models import Book
             target_book = Book.objects.select_for_update().get(pk=book.pk)
+
+            # 予約チェックロジック
+            from .models import Reservation
+            # その本が「準備完了」かつ「予約者が自分以外」ならエラー
+            res = Reservation.objects.filter(book=target_book, status=Reservation.Status.READY).first()
+            if res and res.user != user:
+                raise ValidationError(f"この本は現在、他の予約者のために取り置き中です。")
+
+
             #貸出期限を計算
             culculated_due_date = timezone.now().date() + timezone.timedelta(days=user.lending_period_days)
             #インスタンスの生成、バリデーション
@@ -76,20 +86,31 @@ class LendingManager(models.Manager):
             if lending.status == self.model.Status.RETURNED:
                 raise ValidationError("この本はすでに返却済みです。")
         
-            #貸出情報の更新
+            # 貸出情報の更新
             lending.return_date = timezone.now().date()
             lending.status = self.model.Status.RETURNED
             lending.save(update_fields=["return_date", "status","updated_at"])
-            #書籍の状況を更新
-            book.status = book.Status.AVAILABLE
-            book.save(update_fields=["status","updated_at"])
 
+
+            # 予約の引き当て
+            from .models import Reservation
+            next_res = Reservation.objects.waiting().filter(biblio=book.biblio).first()
+
+            if next_res:
+                # 予約がある場合：準備完了へ
+                Reservation.objects.mark_as_ready(next_res, book)
+                book.status = book.Status.RESERVED  # BookモデルにRESERVEDを追加想定
+            else:
+                # 予約がない場合：通常通り利用可能へ
+                book.status = book.Status.AVAILABLE
+
+            book.save(update_fields=["status","updated_at"])
             return lending
         
     #貸出期間延長機能
     def renew(self,lending, user, days=14):
         with transaction.atomic():
-            lending, _ = self._get_locked_lending_and_book(lending.pk)
+            lending, book = self._get_locked_lending_and_book(lending.pk)
 
             # バリデーション
             if lending.user != user and not user.is_staff:
@@ -101,17 +122,14 @@ class LendingManager(models.Manager):
             if lending.is_overdue():
                 raise ValidationError("期限が過ぎている本は延長できません。一度返却してください。")
 
-            # バリデーション3: 予約の有無を確認
-            # Reservationモデルが存在し、Status.PENDING(待ち)の状態がある想定
-            # from reservations.models import Reservation
-            # has_reservation = Reservation.objects.filter(
-            #     book=target_book,
-            #     status=1  # 例えば 1: PENDING (予約中)
-            # ).exists()
+            # 予約の有無を確認
+            from .models import Reservation
+            has_waiting_reservation = Reservation.objects.waiting().filter(
+                biblio=book.biblio
+            ).exists()
 
-            # if has_reservation:
-            #     raise ValidationError("この本には次に予約が入っているため、延長できません。")
-
+            if has_waiting_reservation:
+                raise ValidationError("この本には次に予約が入っているため、延長できません。")
             # 期間の更新
             lending.due_date += timezone.timedelta(days=days)
             lending.save(update_fields=['due_date', 'updated_at'])
@@ -168,7 +186,7 @@ class Lending(TransactionBase):
         
         # 2. ユーザーの貸出上限チェック
         active_loans = Lending.objects.filter(user=self.user, return_date__isnull=True).count()
-        if not self.pk and not self.user.can_lend():
+        if not self.pk and not self.user.can_lend:
             raise ValidationError(f"貸出上限[{self.user.lending_limit}]件に達しています。")
         
         # 3. 延滞中でないかチェック
@@ -242,10 +260,7 @@ class ReservationManager(models.Manager):
             reservation.status = 2  # READY
             reservation.book = target_book
             reservation.reserved_until = timezone.now().date() + timezone.timedelta(days=period_days)
-            
-            # 書籍側のステータスも「予約取置中」などの状態があれば更新
-            # target_book.status = Book.Status.RESERVED 
-            # target_book.save()
+
 
             reservation.save(update_fields=['status', 'book', 'reserved_until', 'updated_at'])
             return reservation
@@ -328,7 +343,6 @@ class Reservation(TransactionBase):
     def clean(self):
         super().clean()
         # 1. 既に同じ本を借りている場合は予約できない
-        from .models import Lending
         if Lending.objects.active().filter(user=self.user, book__biblio=self.biblio).exists():
             raise ValidationError("現在貸出中の書籍を予約することはできません。")
 
@@ -340,12 +354,5 @@ class Reservation(TransactionBase):
             ).exclude(pk=self.pk).exists()
             if duplicate:
                 raise ValidationError("既にこの本に有効な予約が入っています。")
-
-    def mark_as_ready(self, book, days=7):
-        """書籍が返却された際に、予約を『準備完了』にする処理"""
-        self.status = self.Status.READY
-        self.book = book
-        self.reserved_until = timezone.now().date() + timezone.timedelta(days=days)
-        self.save()
 
 

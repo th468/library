@@ -93,10 +93,15 @@ class User(AbstractBaseUser,PermissionsMixin):
         # 循環参照を避けるためメソッド内でインポート
         from transactions.models import Lending
         return self.lending_set.filter(return_date__isnull=True).count()
-
+    @property
     def can_lend(self):
         """貸出可能ならTrue、上限ならFalseを返す"""
         return self.active_lending_count < self.lending_limit
+    @property
+    def is_overdue(self):
+        """延滞しているかチェックする"""
+        pass
+
 
     class Meta:
         verbose_name = "ユーザー"

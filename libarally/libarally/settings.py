@@ -131,3 +131,6 @@ LOGIN_URL = "accounts:login"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 予約の取置期間（日）
+RESERVATION_PERIOD_DAYS = 7
