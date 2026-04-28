@@ -59,12 +59,12 @@ class LendingManager(models.Manager):
 
 
             #貸出期限を計算
-            culculated_due_date = timezone.now().date() + timezone.timedelta(days=user.lending_period_days)
+            calculated_due_date = timezone.now().date() + timezone.timedelta(days=user.lending_period_days)
             #インスタンスの生成、バリデーション
             lending = self.model(
                 user=user,
                 book=target_book, 
-                due_date=culculated_due_date,
+                due_date=calculated_due_date,
                 )
             lending.full_clean()
 
@@ -175,8 +175,17 @@ class Lending(TransactionBase):
     objects = LendingManager.from_queryset(LendingQuerySet)()
 
 
+    @property
     def is_overdue(self):
         return self.status == self.Status.LENDING and self.due_date < timezone.now().date()
+
+    @property
+    def days_overdue(self):
+        """延滞日数を返す（延滞していない場合は0）"""
+        if self.is_overdue:
+            delta = timezone.now().date() - self.due_date
+            return delta.days
+        return 0
 
     def clean(self):
         super().clean()
@@ -190,8 +199,8 @@ class Lending(TransactionBase):
             raise ValidationError(f"貸出上限[{self.user.lending_limit}]件に達しています。")
         
         # 3. 延滞中でないかチェック
-        #  if not self.pk and　self.user.
-        #     raise ValidationError(f"貸出上限（{self.user.lending_limit}件に達しています。")
+        if not self.pk and self.user.has_overdue_loans:          
+            raise ValidationError(f"延滞中の書籍があるため、貸出できません。")
 #endregion貸出処理
 
 
@@ -199,7 +208,7 @@ class Lending(TransactionBase):
 
 
 
-# region仮置き、予約マネージャー
+# region予約マネージャー
 class ReservationQuerySet(models.QuerySet):
     """
     予約データの検索を便利にするカスタムQuerySet

@@ -101,24 +101,24 @@ class UserModelTest(TestCase):
         # active_lending_count プロパティを Mock 化
         with patch('accounts.models.User.active_lending_count', new_callable=PropertyMock) as mock_count:
             mock_count.return_value = 0
-            self.assertTrue(user.can_lend())
+            self.assertTrue(user.can_lend)
             
             mock_count.return_value = 4
-            self.assertTrue(user.can_lend())
+            self.assertTrue(user.can_lend)
 
     def test_can_lend_abnormal(self):
         """異常系: 貸出中件数が上限を超えている（想定外だがロジック上）場合はFalseを返す"""
         user = UserFactory(lending_limit=5)
         with patch('accounts.models.User.active_lending_count', new_callable=PropertyMock) as mock_count:
             mock_count.return_value = 6
-            self.assertFalse(user.can_lend())
+            self.assertFalse(user.can_lend)
 
     def test_can_lend_boundary(self):
         """境界値: 貸出中件数が上限と一致する場合、Falseを返す"""
         user = UserFactory(lending_limit=5)
         with patch('accounts.models.User.active_lending_count', new_callable=PropertyMock) as mock_count:
             mock_count.return_value = 5
-            self.assertFalse(user.can_lend())
+            self.assertFalse(user.can_lend)
 
 
 class DepartmentModelTest(TestCase):

@@ -98,9 +98,10 @@ class User(AbstractBaseUser,PermissionsMixin):
         """貸出可能ならTrue、上限ならFalseを返す"""
         return self.active_lending_count < self.lending_limit
     @property
-    def is_overdue(self):
-        """延滞しているかチェックする"""
-        pass
+    def has_overdue_loans(self):
+        """このユーザーに1件でも延滞があるか"""
+        # LendingのManager経由でQuerySetのoverdue()を呼び出す
+        return self.lending_set.overdue().exists()
 
 
     class Meta:
