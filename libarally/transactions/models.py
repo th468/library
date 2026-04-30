@@ -119,7 +119,7 @@ class LendingManager(models.Manager):
             if lending.status != self.model.Status.LENDING:
                 raise ValidationError("貸出中以外のレコードは延長できません。")
 
-            if lending.is_overdue():
+            if lending.is_overdue:
                 raise ValidationError("期限が過ぎている本は延長できません。一度返却してください。")
 
             # 予約の有無を確認
@@ -189,18 +189,23 @@ class Lending(TransactionBase):
 
     def clean(self):
         super().clean()
-        # 1. 貸出前に蔵書が貸出可能かチェック
-        if not self.pk and self.book.status != self.book.Status.AVAILABLE: 
-            raise ValidationError("この本は現在ご利用いただけません。")
-        
-        # 2. ユーザーの貸出上限チェック
-        active_loans = Lending.objects.filter(user=self.user, return_date__isnull=True).count()
-        if not self.pk and not self.user.can_lend:
-            raise ValidationError(f"貸出上限[{self.user.lending_limit}]件に達しています。")
-        
-        # 3. 延滞中でないかチェック
-        if not self.pk and self.user.has_overdue_loans:          
-            raise ValidationError(f"延滞中の書籍があるため、貸出できません。")
+
+        # ガード句：材料が揃っていなければ即終了
+        if not self.user_id or not self.book_id:
+            return
+        # 1. 新規登録時のみのチェック（self.pk がない ＝ まだ保存されていない）
+        if not self.pk:
+            # 蔵書の状態チェック
+            if self.book.status != self.book.Status.AVAILABLE: 
+                raise ValidationError("この本は現在ご利用いただけません。")
+            
+            # ユーザーの上限チェック
+            if not self.user.can_lend:
+                raise ValidationError(f"貸出上限[{self.user.lending_limit}]件に達しています。")
+            
+            # 延滞チェック
+            if self.user.has_overdue_loans:          
+                raise ValidationError(f"延滞中の書籍があるため、貸出できません。")
 #endregion貸出処理
 
 
@@ -351,13 +356,18 @@ class Reservation(TransactionBase):
 
     def clean(self):
         super().clean()
+
+        # user が None の場合は、以降の user.can_lend チェックをスキップする
+        # (user 自体の必須チェックは Django の基本バリデーションが別途行うため)
+        if not self.user_id or not self.biblio_id:
+            return
         # 1. 既に同じ本を借りている場合は予約できない
         if Lending.objects.active().filter(user=self.user, book__biblio=self.biblio).exists():
             raise ValidationError("現在貸出中の書籍を予約することはできません。")
 
         # 2. 重複予約のチェック（既に「待ち」または「準備完了」の予約があるか）
         if self.status == self.Status.WAITING:
-            duplicate = self.objects.active().filter(
+            duplicate = Reservation.objects.active().filter(
                 user=self.user, 
                 biblio=self.biblio
             ).exclude(pk=self.pk).exists()
