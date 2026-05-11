@@ -54,8 +54,9 @@ class BaseModelBehaviorMixin:
     def assert_logical_delete_queryset(self, factory_class):
         """QuerySet.delete() によるバルク論理削除を検証"""
         model, name = self._get_meta(factory_class)
-        # テスト開始前にDBを完全に空にする
         model.all_objects.all().hard_delete()
+
+
         factory_class.create_batch(3)
         model, name = self._get_meta(factory_class)
         

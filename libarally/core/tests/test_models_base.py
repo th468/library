@@ -80,7 +80,7 @@ class BaseSchemaTestCase(TestCase):
 class TestModelTest(BaseSchemaTestCase, BaseModelBehaviorMixin):
     """BaseModel の基本挙動テスト"""
 
-def test_base_behavior(self):
+    def test_base_behavior(self):
         """BaseModelの共通機能を一括検証する"""
         factory_class = TestModelFactory
         
