@@ -1,128 +1,163 @@
-import factory
-from django.db import connection, models
+from django.db import models, connection
 from django.test import TestCase
+import factory
 
-# 基盤クラスとMixinのインポート
 from core.models.base import BaseModel
 from core.models.mixins import RenameUniqueFieldsMixin
-from core.tests.test_mixins import BaseModelBehaviorMixin, RenameUniqueTestMixin
+from core.tests.test_mixins import BaseCoreModelTest
 
-# ----------------------------------------------------------------      
-# 1. テスト用ダミーモデルの定義
-# ----------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1. テスト用具象モデルの定義 (Dummy Models)
+# -----------------------------------------------------------------------------
 
-class TestModel(BaseModel):
-    """BaseModelの基本機能を検証するためのダミーモデル"""
-    class Meta:
-        app_label = 'core'  # schema_editor実行のために必要
-
-
-class TestUniqueModel(BaseModel, RenameUniqueFieldsMixin):
-    """リネーム機能を検証するためのユニーク制約を持つダミーモデル"""
-    code = models.CharField(max_length=10, unique=True)
-    
-    delete_unique_fields = ['code']
-
+class PatternA_Model(BaseModel):
+    """'title' フィールドを持つモデル"""
+    title = models.CharField(max_length=100)
     class Meta:
         app_label = 'core'
 
-
-# ----------------------------------------------------------------      
-# 2. Factoryの定義
-# ----------------------------------------------------------------
-
-class TestModelFactory(factory.django.DjangoModelFactory):
+class PatternB_Model(BaseModel):
+    """'title' は持たず 'name' フィールドを持つモデル"""
+    name = models.CharField(max_length=100)
     class Meta:
-        model = TestModel
-    
-    remarks = factory.Faker('sentence')
+        app_label = 'core'
 
-
-class TestUniqueModelFactory(factory.django.DjangoModelFactory):
+class PatternC_Model(BaseModel):
+    """どちらのフィールドも持たないモデル"""
     class Meta:
-        model = TestUniqueModel
+        app_label = 'core'
+
+class UniqueRename_Model(BaseModel, RenameUniqueFieldsMixin):
+    """リネーム機能を持ち、複数のユニークフィールドを持つモデル"""
+    code = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
     
-    code = factory.Sequence(lambda n: f'CODE{n:03}')
-    remarks = factory.Faker('sentence')
-
-
-# ----------------------------------------------------------------      
-# 3. テストクラスの実装
-# ----------------------------------------------------------------
-
-class BaseSchemaTestCase(TestCase):
-    """ダミーモデル用のテーブルを動的に作成・削除する基底クラス"""
+    delete_unique_fields = ['code', 'slug']
     
+    class Meta:
+        app_label = 'core'
+
+# -----------------------------------------------------------------------------
+# 2. テーブルの動的管理を行う基底クラス
+# -----------------------------------------------------------------------------
+class SchemaManagedTestCase(TestCase):
+    """ダミーモデルのテーブルを動的に作成・削除するTestCase"""
+    
+    # 管理対象のモデルリスト
+    dummy_models = [
+        PatternA_Model,
+        PatternB_Model,
+        PatternC_Model,
+        UniqueRename_Model,
+    ]
+
     @classmethod
     def setUpClass(cls):
-        # 参照されているダミーモデルのリスト
-        cls.test_models = [TestModel, TestUniqueModel]
-        
-        # 実際にDBにテーブルを作成する
+        # super().setUpClass() の前に実行し、モデルが利用可能な状態にする
         with connection.schema_editor() as schema_editor:
-            for model in cls.test_models:
+            for model in cls.dummy_models:
                 schema_editor.create_model(model)
-        
-        # 最後に標準のsetUpClassを呼び出す
         super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        # 標準のtearDownClassを先に呼び出す
         super().tearDownClass()
-        
-        # 作成したテーブルを削除（作成時と逆の順序）
+        # 作成時と逆の順序で削除（外部参照等がある場合の安全策）
         with connection.schema_editor() as schema_editor:
-            for model in reversed(cls.test_models):
+            for model in reversed(cls.dummy_models):
                 schema_editor.delete_model(model)
 
+# -----------------------------------------------------------------------------
+# 3. FactoryBoyによるFactory定義
+# -----------------------------------------------------------------------------
 
-class TestModelTest(BaseSchemaTestCase, BaseModelBehaviorMixin):
-    """BaseModel の基本挙動テスト"""
+class PatternAFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PatternA_Model
+    title = factory.Sequence(lambda n: f"Title {n}")
 
-    def test_base_behavior(self):
-        """BaseModelの共通機能を一括検証する"""
-        factory_class = TestModelFactory
+class PatternBFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PatternB_Model
+    name = factory.Sequence(lambda n: f"Name {n}")
+
+class PatternCFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PatternC_Model
+
+class UniqueRenameFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = UniqueRename_Model
+    code = factory.Sequence(lambda n: f"CODE_{n}")
+    slug = factory.Sequence(lambda n: f"slug-{n}")
+
+# -----------------------------------------------------------------------------
+# 4. テストクラスの実装
+# -----------------------------------------------------------------------------
+
+class BaseModelComprehensiveTest(SchemaManagedTestCase, BaseCoreModelTest):
+    """BaseModelの全機能を一括検証する"""
+
+    def test_everything(self):
+        """全てのバリエーションを網羅実行"""
         
-        # 1. objects(有効データのみ) と all_objects(削除済含む全データ) が正しく分離されているか検証
-        self.assert_managers_strictly_separated(factory_class)
+        # パターン1: titleを持つモデルの標準挙動
+        with self.subTest(pattern="PatternA (title)"):
+            self.factory_class = PatternAFactory
+            self.test_standard_behavior()
 
-        # 2. インスタンスの delete() 実行時に、論理削除フラグが立ち、更新日時が正しく変わるか検証
-        self.assert_logical_delete_instance(factory_class)
+        # パターン2: nameを持つモデルの標準挙動
+        with self.subTest(pattern="PatternB (name)"):
+            self.factory_class = PatternBFactory
+            self.test_standard_behavior()
 
-        # 3. クエリセットの delete()（バルク削除）で、複数レコードが一括で論理削除されるか検証
-        self.assert_logical_delete_queryset(factory_class)
+        # パターン3: フィールドを持たないモデルの標準挙動
+        with self.subTest(pattern="PatternC (empty)"):
+            self.factory_class = PatternCFactory
+            self.test_standard_behavior()
 
-        # 4. hard_delete() を呼んだ際に、論理削除ではなくDBから物理的にデータが消えるか検証
-        self.assert_hard_delete_behavior(factory_class)
+        # パターン4: リネームMixinの検証
+        with self.subTest(pattern="UniqueRename (mixin)"):
+            self.factory_class = UniqueRenameFactory
+            self.unique_fields = ['code', 'slug']
+            self.unique_test_data = {'code': 'U-01', 'slug': 's-01'}
+            self.test_standard_behavior()
 
-        # 5. 作成日時(created_at)の自動付与や __str__ の表示形式が仕様通りか検証
-        self.assert_base_model_logic(factory_class)
 
 
-class TestUniqueModelTest(BaseSchemaTestCase, BaseModelBehaviorMixin, RenameUniqueTestMixin):
-    """TestUniqueModel (BaseModel + RenameUniqueFieldsMixin) の挙動テスト"""
+# class PatternAModelTest(BaseCoreModelTest):
+#     """PatternA: title 優先表示の検証"""
+#     factory_class = PatternAFactory
 
-    def test_base_behavior(self):
-        """リネーム対象モデルでも基本機能（論理削除等）が壊れていないか検証"""
-        self.assert_managers_strictly_separated(TestUniqueModelFactory)
-        self.assert_logical_delete_instance(TestUniqueModelFactory)
-        self.assert_logical_delete_queryset(TestUniqueModelFactory)
-        self.assert_hard_delete_behavior(TestUniqueModelFactory)
-        self.assert_base_model_logic(TestUniqueModelFactory)
+# class PatternBModelTest(BaseCoreModelTest):
+#     """PatternB: name 表示の検証"""
+#     factory_class = PatternBFactory
 
-    def test_rename_behavior(self):
-        """リネーム機能に特化した検証"""
-        factory_class = TestUniqueModelFactory
+# class PatternCModelTest(BaseCoreModelTest):
+#     """PatternC: クラス名表示の検証"""
+#     factory_class = PatternCFactory
+
+# class UniqueRenameModelTest(BaseCoreModelTest):
+#     """UniqueRename: リネームと複数フィールドの検証"""
+#     factory_class = UniqueRenameFactory
+#     # リネーム対象のフィールドリスト
+#     unique_fields = ['code', 'slug']
+#     # 再登録検証用のデータ
+#     unique_test_data = {
+#         'code': 'UNIQUE-001',
+#         'slug': 'unique-slug-001'
+#     }
+
+#     def test_multi_field_rename_simultaneously(self):
+#         """code と slug が同時にリネームされることを追加検証"""
+#         obj = self.factory_class.create(code="target-code", slug="target-slug")
+#         obj.delete()
+#         obj.refresh_from_db()
+
+#         with self.subTest(field="code"):
+#             self.assertIn("_del_", obj.code)
+#             self.assertTrue(obj.code.startswith("target-code"))
         
-        # 1. サフィックス付与の検証
-        self.assert_rename_works(factory_class, unique_fields=['code'])
-        
-        # 2. 二重リネーム防止の検証
-        self.assert_double_rename_protection(factory_class)
-        
-        # 3. 削除後の同一値での再登録検証
-        self.assert_unique_constraint_cleared(factory_class, unique_data={'code': 'UNIQUE01'})
-        
-        # 4. 存在しないフィールド指定時の堅牢性検証
-        self.assert_rename_robustness(factory_class)
+#         with self.subTest(field="slug"):
+#             self.assertIn("_del_", obj.slug)
+#             self.assertTrue(obj.slug.startswith("target-slug"))

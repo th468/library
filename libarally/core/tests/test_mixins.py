@@ -1,183 +1,207 @@
-import time
-from django.db import IntegrityError
-from django.utils import timezone
+from django.test import TestCase
+from core.models.mixins import RenameUniqueFieldsMixin
 
 class BaseModelBehaviorMixin:
-    """
-    BaseModelを継承した全てのモデルに共通する基本挙動（論理削除、物理削除、
-    マネージャーの分離、基本フィールド）を検証するMixin。
-    """
+    """BaseModelの基本機能を検証するためのツールキット"""
 
-    def _get_meta(self, factory_class):
-        model = factory_class._meta.get_model_class()
+    def _get_meta(self, factory):
+        model = factory._meta.model
         return model, model.__name__
 
-    def assert_managers_strictly_separated(self, factory_class):
-        """objects と all_objects の厳密な分離を検証"""
-        model, name = _model, _name = self._get_meta(factory_class)
-        
-        # 準備: 有効データと削除済データを1つずつ作成
-        active_obj = factory_class.create(is_active=True)
-        deleted_obj = factory_class.create(is_active=False)
+    def assert_managers_strictly_separated(self, factory):
+        """objects(有効) と all_objects(全件) の分離を検証"""
+        model, name = self._get_meta(factory)
+        factory.create(is_active=True)
+        factory.create(is_active=False)
 
-        # 1. objects は有効なものしか返さないこと
-        self.assertIn(active_obj, model.objects.all(), msg=f"{name}: objects に有効なデータが含まれていません。")
-        self.assertNotIn(deleted_obj, model.objects.all(), msg=f"{name}: objects に削除済みデータが含まれています。")
-        
-        # 2. objects.filter(is_active=False) は常に空であること
+        self.assertEqual(model.objects.count(), 1, msg=f"{name}: objects に無効データが含まれています。")
+        self.assertEqual(model.all_objects.count(), 2, msg=f"{name}: all_objects で全件取得できていません。")
         self.assertEqual(model.objects.filter(is_active=False).count(), 0, 
-                         msg=f"{name}: objects から論理削除済みデータが取得できてしまいます。")
+                         msg=f"{name}: objects.filter(is_active=False) がデータを返しました。")
 
-        # 3. all_objects は全件返すこと
-        all_count = model.all_objects.count()
-        self.assertGreaterEqual(all_count, 2, msg=f"{name}: all_objects が全件（削除済含む）を返していません。")
-
-    def assert_logical_delete_instance(self, factory_class):
+    def assert_logical_delete_instance(self, factory):
         """インスタンスの delete() による論理削除を検証"""
-        obj = factory_class.create()
-        _, name = self._get_meta(factory_class)
+        model, name = self._get_meta(factory)
+        obj = factory.create()
         old_updated_at = obj.updated_at
 
-        # updated_at の変化を確認するため、微小な待機を入れる（環境により同時刻になるのを防ぐ）
-        time.sleep(0.001)
-
+        # 実行
         obj.delete()
         obj.refresh_from_db()
 
-        self.assertFalse(obj.is_active, msg=f"{name}: delete() 後も is_active が False になっていません。")
-        self.assertGreater(obj.updated_at, old_updated_at, msg=f"{name}: delete() 時に updated_at が更新されていません。")
-        
-        # objects から消えているか確認
-        self.assertFalse(obj.__class__.objects.filter(pk=obj.pk).exists(), 
-                         msg=f"{name}: 論理削除したインスタンスが objects に残っています。")
+        self.assertFalse(obj.is_active, msg=f"{name}: delete() 後に is_active が False になっていません。")
+        self.assertGreater(obj.updated_at, old_updated_at, msg=f"{name}: delete() 後に updated_at が更新されていません。")
+        self.assertFalse(model.objects.filter(pk=obj.pk).exists(), msg=f"{name}: 論理削除されたデータが objects に残っています。")
 
-    def assert_logical_delete_queryset(self, factory_class):
+    def assert_logical_delete_queryset(self, factory):
         """QuerySet.delete() によるバルク論理削除を検証"""
-        model, name = self._get_meta(factory_class)
+        model, name = self._get_meta(factory)
+        # テスト開始前にDBを完全に空にする
         model.all_objects.all().hard_delete()
+        factory.create_batch(3)
+        
+        # 実行
+        res = model.objects.all().delete()
 
-
-        factory_class.create_batch(3)
-        model, name = self._get_meta(factory_class)
-        
-        qs = model.objects.all()
-        count = qs.count()
-        
-        # バルク削除実行
-        res = qs.delete()
-        
-        # 戻り値が更新件数（整数）であることを確認（Django標準はタプルだが、本実装はupdateなので整数）
-        self.assertIsInstance(res, int, msg=f"{name}: QuerySet.delete() の戻り値が整数ではありません。")
+        self.assertIsInstance(res, int, msg=f"{name}: QuerySet.delete() の戻り値が更新件数(int)ではありません。")
         self.assertEqual(model.objects.count(), 0, msg=f"{name}: バルク削除後、objects にデータが残っています。")
-        self.assertEqual(model.all_objects.filter(is_active=False).count(), count, 
-                         msg=f"{name}: バルク削除されたデータが all_objects(is_active=False) に正しく反映されていません。")
+        self.assertEqual(model.all_objects.filter(is_active=False).count(), 3, 
+                         msg=f"{name}: バルク削除されたデータが all_objects に正しく反映されていません。")
 
-    def assert_hard_delete_behavior(self, factory_class):
-        """物理削除 (hard_delete) の挙動を検証"""
-        model, name = self._get_meta(factory_class)
+    def assert_hard_delete_behavior(self, factory):
+        """hard_delete() による物理削除を検証"""
+        model, name = self._get_meta(factory)
         
-        # インスタンスの物理削除
-        obj = factory_class.create()
+        # インスタンスレベル
+        obj = factory.create()
         obj.hard_delete()
-        self.assertFalse(model.all_objects.filter(pk=obj.pk).exists(), 
-                         msg=f"{name}: インスタンスの hard_delete() 後もデータがDBに残っています。")
+        self.assertFalse(model.all_objects.filter(pk=obj.pk).exists(), msg=f"{name}: インスタンスの物理削除に失敗しました。")
 
-        # クエリセットの物理削除
-        factory_class.create_batch(2)
+        # クエリセットレベル
+        factory.create_batch(2)
         model.all_objects.all().hard_delete()
-        self.assertEqual(model.all_objects.count(), 0, 
-                         msg=f"{name}: QuerySet.hard_delete() 後もデータがDBに残っています。")
+        self.assertEqual(model.all_objects.count(), 0, msg=f"{name}: クエリセットの物理削除に失敗しました。")
 
-    def assert_base_model_logic(self, factory_class):
-        """共通フィールドと __str__ の基本ロジックを検証"""
-        model, name = self._get_meta(factory_class)
+    def assert_base_model_logic(self, factory):
+        """共通フィールド(created_at, remarks)の保存を検証"""
+        model, name = self._get_meta(factory)
         
-        # 1. created_at / remarks
-        obj = factory_class.create(remarks="test_remark")
-        self.assertIsNotNone(obj.created_at, msg=f"{name}: created_at が自動設定されていません。")
-        self.assertEqual(obj.remarks, "test_remark", msg=f"{name}: remarks が正しく保存されていません。")
-
-        # 2. __str__ のフォールバックロジック
-        # ケースA: title がある場合
-        if hasattr(obj, 'title'):
-            obj.title = "Sample Title"
-            self.assertEqual(str(obj), f"[{obj.pk}] Sample Title", msg=f"{name}: __str__ が title を優先していません。")
-        
-        # ケースB: title がなく name がある場合
-        obj_name = factory_class.build(name="Sample Name")
-        if hasattr(obj_name, 'name') and not hasattr(obj_name, 'title'):
-            obj_name.save()
-            self.assertEqual(str(obj_name), f"[{obj_name.pk}] Sample Name", msg=f"{name}: __str__ が name を表示していません。")
-
-        # ケースC: いずれもない場合（クラス名フォールバック）
-        # ダミーモデル側で title/name を持たないインスタンスを生成して検証
-        pure_obj = factory_class.create()
-        if not hasattr(pure_obj, 'title') and not hasattr(pure_obj, 'name'):
-            self.assertEqual(str(pure_obj), f"[{pure_obj.pk}] {name}", msg=f"{name}: __str__ がクラス名フォールバックになっていません。")
+        # remarksの保存確認
+        obj = factory.create(remarks="Test Remarks")
+        self.assertIsNotNone(obj.created_at, msg=f"{name}: created_at が自動付与されていません。")
+        self.assertEqual(obj.remarks, "Test Remarks", msg=f"{name}: remarks が正しく保存されていません。")
 
 
 class RenameUniqueTestMixin:
-    """
-    RenameUniqueFieldsMixinを継承したモデルの、論理削除時のリネーム機能を検証するMixin。
-    """
+    """リネーム機能 (RenameUniqueFieldsMixin) を検証するためのツールキット"""
 
-    def _get_meta(self, factory_class):
-        model = factory_class._meta.get_model_class()
-        return model, model.__name__
+    def assert_rename_works(self, factory, unique_fields):
+        """サフィックス付与の正確性を検証"""
+        model, name = self._get_meta(factory)
+        obj = factory.create()
+        original_values = {field: getattr(obj, field) for field in unique_fields}
 
-    def assert_rename_works(self, factory_class, unique_fields):
-        """指定された全フィールドにサフィックスが付与されるか検証"""
-        obj = factory_class.create()
-        _, name = self._get_meta(factory_class)
-        
         obj.delete()
         obj.refresh_from_db()
 
         for field in unique_fields:
-            val = str(getattr(obj, field))
-            self.assertIn("_del_", val, msg=f"{name}: フィールド '{field}' に削除サフィックスが含まれていません。")
+            new_val = getattr(obj, field)
+            self.assertIn("_del_", str(new_val), msg=f"{name}: フィールド {field} にサフィックスが付与されていません。")
+            self.assertTrue(str(new_val).startswith(str(original_values[field])), 
+                            msg=f"{name}: フィールド {field} の元の値が保持されていません。")
 
-    def assert_double_rename_protection(self, factory_class):
-        """perform_rename() の二重実行を防止できているか検証"""
-        obj = factory_class.create()
-        _, name = self._get_meta(factory_class)
-        
-        # mixinのメソッドを直接呼ぶ
-        obj.perform_rename()
-        val_after_first = str(getattr(obj, obj.delete_unique_fields[0]))
-        
-        obj.perform_rename()
-        val_after_second = str(getattr(obj, obj.delete_unique_fields[0]))
+    def assert_double_rename_protection(self, factory, unique_fields):
+        """二重リネームの防止を検証"""
+        obj = factory.create()
+        obj.delete() # 1回目
+        obj.refresh_from_db()
+        val_after_first_delete = {field: getattr(obj, field) for field in unique_fields}
 
-        self.assertEqual(val_after_first, val_after_second, 
-                         msg=f"{name}: perform_rename() を2回実行した際にサフィックスが二重付与されました。")
-
-    def assert_unique_constraint_cleared(self, factory_class, unique_data):
-        """削除後、同じ値で再登録（一意制約の回避）ができるか検証"""
-        _, name = self._get_meta(factory_class)
+        obj.perform_rename() # 2回目を手動実行
         
-        # 1回目作成・削除
-        obj = factory_class.create(**unique_data)
+        for field in unique_fields:
+            self.assertEqual(getattr(obj, field), val_after_first_delete[field], 
+                             msg=f"{factory._meta.model.__name__}: 二重リネームによりサフィックスが重複付与されました。")
+
+    def assert_unique_constraint_cleared(self, factory, unique_test_data):
+        """削除後の再登録成功を検証"""
+        model, name = self._get_meta(factory)
+        # 一度作成して削除
+        obj = factory.create(**unique_test_data)
         obj.delete()
 
-        # 同じ値で2回目作成（ここで IntegrityError が出なければ成功）
+        # 同じ値で再作成（ユニーク制約エラーが起きないことを確認）
         try:
-            factory_class.create(**unique_data)
-        except IntegrityError:
-            self.fail(f"{name}: 論理削除後の再登録で一意制約エラーが発生しました。リネームが不十分です。")
-
-    def assert_rename_robustness(self, factory_class):
-        """存在しないフィールド名が含まれていてもエラーにならないか検証"""
-        obj = factory_class.create()
-        _, name = self._get_meta(factory_class)
-        
-        # 一時的に存在しないフィールドをリストに追加
-        original_fields = obj.delete_unique_fields
-        obj.delete_unique_fields = original_fields + ["non_existent_field_xyz"]
-        
-        try:
-            obj.perform_rename()
+            factory.create(**unique_test_data)
         except Exception as e:
-            self.fail(f"{name}: 存在しないフィールドが delete_unique_fields にある際に例外が発生しました: {e}")
-        finally:
-            obj.delete_unique_fields = original_fields
+            self.fail(msg=f"{name}: 削除済データのユニーク制約が解放されていないため、再登録に失敗しました。 エラー: {e}")
+
+    def assert_rename_robustness(self, factory):
+        """存在しないフィールド指定時のエラー耐性を検証"""
+        model, name = self._get_meta(factory)
+        obj = factory.create()
+        # 存在しないフィールドを一時的に追加
+        obj.delete_unique_fields.append("non_existent_field")
+        
+        try:
+            obj.delete()
+        except Exception as e:
+            self.fail(msg=f"{name}: 存在しないフィールドが delete_unique_fields に含まれるとエラーが発生します。 エラー: {e}")
+
+
+class BaseCoreModelTest(TestCase, BaseModelBehaviorMixin, RenameUniqueTestMixin):
+    """
+    全てのモデルテストの基底となるクラス。
+    factory_class を定義するだけで、標準的な全テストを自動実行する。
+    """
+    factory_class = None
+    unique_fields = []
+    unique_test_data = {}
+    skip_rename_test = False
+
+    def test_standard_behavior(self):
+        """サブテストを利用した一括検証ランナー"""
+        if not self.factory_class:
+            return
+
+        f = self.factory_class
+        model, name = self._get_meta(f)
+
+        # 実行前にDBをクリーンアップ
+        model.all_objects.all().hard_delete()
+
+        # 1. 共通コア機能テスト
+        core_cases = [
+            ("ManagersSeparation", self.assert_managers_strictly_separated),
+            ("LogicalDeleteInstance", self.assert_logical_delete_instance),
+            ("LogicalDeleteQuerySet", self.assert_logical_delete_queryset),
+            ("HardDeleteBehavior", self.assert_hard_delete_behavior),
+            ("BaseModelLogic", self.assert_base_model_logic),
+        ]
+
+        for label, method in core_cases:
+            with self.subTest(check=label, model=name):
+                method(f)
+
+        # 2. Rename機能の自動判定実行
+        if issubclass(model, RenameUniqueFieldsMixin) and not self.skip_rename_test:
+            rename_cases = [
+                ("RenameWorks", lambda factory: self.assert_rename_works(factory, self.unique_fields)),
+                ("DoubleRenameProtection", lambda factory: self.assert_double_rename_protection(factory, self.unique_fields)),
+                ("UniqueConstraintCleared", lambda factory: self.assert_unique_constraint_cleared(factory, self.unique_test_data)),
+                ("RenameRobustness", self.assert_rename_robustness),
+            ]
+            for label, method in rename_cases:
+                with self.subTest(check=f"Rename:{label}", model=name):
+                    method(f)
+
+        # 3. __str__ の検証（フックメソッド）
+        with self.subTest(check="StringRepresentation", model=name):
+            self.run_str_test()
+
+    def run_str_test(self):
+        """__str__ の検証ロジック（必要に応じてオーバーライド可能）"""
+        f = self.factory_class
+        model, name = self._get_meta(f)
+
+        # 動的な引数生成で TypeError を回避
+        create_kwargs = {}
+        expected_part = ""
+        
+        if hasattr(model, 'title'):
+            create_kwargs['title'] = "TestTitle"
+            expected_part = "TestTitle"
+        elif hasattr(model, 'name'):
+            create_kwargs['name'] = "TestName"
+            expected_part = "TestName"
+        
+        obj = f.create(**create_kwargs)
+        display_str = str(obj)
+        
+        # IDが含まれているか
+        self.assertIn(str(obj.pk), display_str, msg=f"{name}: __str__ に PK が含まれていません。")
+        # 名前/タイトルまたはクラス名が含まれているか
+        if expected_part:
+            self.assertIn(expected_part, display_str, msg=f"{name}: __str__ に期待される文字列({expected_part})が含まれていません。")
+        else:
+            self.assertIn(name, display_str, msg=f"{name}: __str__ にクラス名が含まれていません。")

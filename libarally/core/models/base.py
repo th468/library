@@ -1,5 +1,4 @@
 from django.db import models
-import datetime
 
 class BaseQuerySet(models.QuerySet):
     """プロジェクト共通のクエリ操作"""
