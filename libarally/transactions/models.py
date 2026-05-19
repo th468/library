@@ -1,7 +1,8 @@
-from django.db import models, transaction
-from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
+from django.utils import timezone
+
 
 class TransactionBase(models.Model):
     created_at = models.DateTimeField("申請日", auto_now_add=True)
@@ -9,7 +10,7 @@ class TransactionBase(models.Model):
     remarks = models.TextField("備考", null=True, blank=True, help_text="特記事項があれば記入してください。")
 
     class Meta:
-        abstract = True  
+        abstract = True
 
 #region貸出管理機能
 
@@ -36,13 +37,13 @@ class LendingManager(models.Manager):
         """
         # 1. まずLendingをロック
         target_lending = self.select_for_update().get(pk=lending_pk)
-        
+
         # 2. 次に紐づくBookをロック
         from books.models import Book
         target_book = Book.objects.select_for_update().get(pk=target_lending.book_id)
-        
+
         return target_lending, target_book
-    
+
     #貸出処理
     def lend(self, book, user):
         #トランザクション開始、対象の書籍をロック
@@ -55,7 +56,7 @@ class LendingManager(models.Manager):
             # その本が「準備完了」かつ「予約者が自分以外」ならエラー
             res = Reservation.objects.filter(book=target_book, status=Reservation.Status.READY).first()
             if res and res.user != user:
-                raise ValidationError(f"この本は現在、他の予約者のために取り置き中です。")
+                raise ValidationError("この本は現在、他の予約者のために取り置き中です。")
 
 
             #貸出期限を計算
@@ -63,7 +64,7 @@ class LendingManager(models.Manager):
             #インスタンスの生成、バリデーション
             lending = self.model(
                 user=user,
-                book=target_book, 
+                book=target_book,
                 due_date=calculated_due_date,
                 )
             lending.full_clean()
@@ -73,19 +74,19 @@ class LendingManager(models.Manager):
 
             lending.save()
             return lending
-        
+
     #返却処理
     def collect(self, lending, user):
          #トランザクション開始、対象の書籍をロック
-        with transaction.atomic():                      
+        with transaction.atomic():
             lending, book = self._get_locked_lending_and_book(lending.pk)
             #バリデーション
             if lending.user != user and not user.is_staff:
-                raise ValidationError(f"ログインユーザーはこの本を貸出していません。")
+                raise ValidationError("ログインユーザーはこの本を貸出していません。")
 
             if lending.status == self.model.Status.RETURNED:
                 raise ValidationError("この本はすでに返却済みです。")
-        
+
             # 貸出情報の更新
             lending.return_date = timezone.now().date()
             lending.status = self.model.Status.RETURNED
@@ -106,7 +107,7 @@ class LendingManager(models.Manager):
 
             book.save(update_fields=["status","updated_at"])
             return lending
-        
+
     #貸出期間延長機能
     def renew(self,lending, user, days=14):
         with transaction.atomic():
@@ -114,8 +115,8 @@ class LendingManager(models.Manager):
 
             # バリデーション
             if lending.user != user and not user.is_staff:
-                raise ValidationError(f"ログインユーザーはこの本を貸出していません。")
-            
+                raise ValidationError("ログインユーザーはこの本を貸出していません。")
+
             if lending.status != self.model.Status.LENDING:
                 raise ValidationError("貸出中以外のレコードは延長できません。")
 
@@ -137,7 +138,7 @@ class LendingManager(models.Manager):
             return lending
 
 # 返却処理（書籍から逆引き）
-    def collect_by_book(self, book, user): 
+    def collect_by_book(self, book, user):
         with transaction.atomic():
             # 貸出中のレコードを特定。存在しない場合は例外を投げる
             lending = self.active().filter(book=book).first()
@@ -152,26 +153,26 @@ class Lending(TransactionBase):
         LENDING = 1, "貸出中"
         RETURNED = 2, "返却済み"
         OTHER = 3, "その他、備考にて記入"
-    
+
     user = models.ForeignKey(
-        'accounts.User', 
+        'accounts.User',
         on_delete=models.CASCADE,
         verbose_name="利用者"
         )
-    book = models.ForeignKey("books.Book", 
-                             on_delete=models.PROTECT, 
+    book = models.ForeignKey("books.Book",
+                             on_delete=models.PROTECT,
                              verbose_name="書籍")
     due_date = models.DateField("返却期限")
     return_date = models.DateField("返却日", null=True, blank=True)
-    status = models.IntegerField("状況", 
-                                 choices=Status.choices, 
-                                 default=Status.LENDING, 
+    status = models.IntegerField("状況",
+                                 choices=Status.choices,
+                                 default=Status.LENDING,
                                  db_index=True)
-    
+
     class Meta:
         verbose_name = "貸出情報"
         verbose_name_plural = "貸出情報"
-    
+
     objects = LendingManager.from_queryset(LendingQuerySet)()
 
 
@@ -196,16 +197,16 @@ class Lending(TransactionBase):
         # 1. 新規登録時のみのチェック（self.pk がない ＝ まだ保存されていない）
         if not self.pk:
             # 蔵書の状態チェック
-            if self.book.status != self.book.Status.AVAILABLE: 
+            if self.book.status != self.book.Status.AVAILABLE:
                 raise ValidationError("この本は現在ご利用いただけません。")
-            
+
             # ユーザーの上限チェック
             if not self.user.can_lend:
                 raise ValidationError(f"貸出上限[{self.user.lending_limit}]件に達しています。")
-            
+
             # 延滞チェック
-            if self.user.has_overdue_loans:          
-                raise ValidationError(f"延滞中の書籍があるため、貸出できません。")
+            if self.user.has_overdue_loans:
+                raise ValidationError("延滞中の書籍があるため、貸出できません。")
 #endregion貸出処理
 
 
@@ -234,7 +235,7 @@ class ReservationManager(models.Manager):
     """
     予約ロジックを管理するマネージャー
     """
-    
+
     def create_reservation(self, user, biblio):
         """
         予約を新規作成する
@@ -267,10 +268,10 @@ class ReservationManager(models.Manager):
             # 書籍をロック
             from books.models import Book
             target_book = Book.objects.select_for_update().get(pk=book.pk)
-            
+
             # settings.pyから取置期間を取得（デフォルト7日）
             period_days = getattr(settings, 'RESERVATION_PERIOD_DAYS', 7)
-            
+
             reservation.status = 2  # READY
             reservation.book = target_book
             reservation.reserved_until = timezone.now().date() + timezone.timedelta(days=period_days)
@@ -310,40 +311,40 @@ class Reservation(TransactionBase):
         COMPLETED = 3, "貸出済み"      # 予約していた本が実際に貸し出された状態
         CANCELED = 4, "キャンセル"      # ユーザーまたはスタッフによる取り消し
         EXPIRED = 5, "期限切れ"        # 取置期限（reserved_until）を過ぎた状態
-        
+
     user = models.ForeignKey(
-        'accounts.User', 
-        on_delete=models.CASCADE, 
+        'accounts.User',
+        on_delete=models.CASCADE,
         verbose_name="利用者",
     )
     biblio = models.ForeignKey(
-        'books.Biblio', 
-        on_delete=models.PROTECT, 
+        'books.Biblio',
+        on_delete=models.PROTECT,
         verbose_name="予約書誌",
     )
     # 予約時点では特定の「本（個体）」は決まっていないため、null=Trueとする
     book = models.ForeignKey(
-        'books.Book', 
-        null=True, 
-        blank=True, 
-        on_delete=models.SET_NULL, 
+        'books.Book',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         verbose_name="予約書籍",
     )
 
     status = models.IntegerField(
-        "予約状況", 
-        choices=Status.choices, 
-        default=Status.WAITING, 
+        "予約状況",
+        choices=Status.choices,
+        default=Status.WAITING,
         db_index=True
     )
     reserved_until = models.DateField(
-        "取置期限", 
-        null=True, 
+        "取置期限",
+        null=True,
         blank=True
     )
 
     is_active = models.BooleanField(
-        "有効な予約か", 
+        "有効な予約か",
         default=True
     )
 
@@ -368,7 +369,7 @@ class Reservation(TransactionBase):
         # 2. 重複予約のチェック（既に「待ち」または「準備完了」の予約があるか）
         if self.status == self.Status.WAITING:
             duplicate = Reservation.objects.active().filter(
-                user=self.user, 
+                user=self.user,
                 biblio=self.biblio
             ).exclude(pk=self.pk).exists()
             if duplicate:

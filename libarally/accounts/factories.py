@@ -1,6 +1,6 @@
 import factory
-from factory.django import DjangoModelFactory
 from django.contrib.auth import get_user_model
+from factory.django import DjangoModelFactory
 
 from .models import Department
 
@@ -20,15 +20,15 @@ class UserFactory(DjangoModelFactory):
     # unique=True の項目には Sequence を使用
     em_num = factory.Sequence(lambda n: f"EM{1000 + n}")
     email = factory.Sequence(lambda n: f"user_{n}@example.com")
-    
+
     # 日本語設定
     name = factory.Faker("name", locale="ja_JP")
-    
+
     is_active = True
     is_staff = False
     lending_limit = 5
     lending_period_days = 14
-    
+
     # ForeignKey の紐付け
     department = factory.SubFactory(DepartmentFactory)
 

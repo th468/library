@@ -1,11 +1,8 @@
-from django.shortcuts import render,redirect
-from .forms import UserCreationForm, UserLoginForm
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 
-
+from .forms import UserCreationForm, UserLoginForm
 
 
 def regist(request):

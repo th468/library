@@ -1,5 +1,5 @@
-from django.test import TestCase
 from core.models.mixins import RenameUniqueFieldsMixin
+
 
 class BaseModelBehaviorMixin:
     """BaseModelの基本機能を検証するためのツールキット"""
@@ -16,7 +16,7 @@ class BaseModelBehaviorMixin:
 
         self.assertEqual(model.objects.count(), 1, msg=f"{name}: objects に無効データが含まれています。")
         self.assertEqual(model.all_objects.count(), 2, msg=f"{name}: all_objects で全件取得できていません。")
-        self.assertEqual(model.objects.filter(is_active=False).count(), 0, 
+        self.assertEqual(model.objects.filter(is_active=False).count(), 0,
                          msg=f"{name}: objects.filter(is_active=False) がデータを返しました。")
 
     def assert_logical_delete_instance(self, factory):
@@ -39,19 +39,19 @@ class BaseModelBehaviorMixin:
         # テスト開始前にDBを完全に空にする
         model.all_objects.all().hard_delete()
         factory.create_batch(3)
-        
+
         # 実行
         res = model.objects.all().delete()
 
         self.assertIsInstance(res, int, msg=f"{name}: QuerySet.delete() の戻り値が更新件数(int)ではありません。")
         self.assertEqual(model.objects.count(), 0, msg=f"{name}: バルク削除後、objects にデータが残っています。")
-        self.assertEqual(model.all_objects.filter(is_active=False).count(), 3, 
+        self.assertEqual(model.all_objects.filter(is_active=False).count(), 3,
                          msg=f"{name}: バルク削除されたデータが all_objects に正しく反映されていません。")
 
     def assert_hard_delete_behavior(self, factory):
         """hard_delete() による物理削除を検証"""
         model, name = self._get_meta(factory)
-        
+
         # インスタンスレベル
         obj = factory.create()
         obj.hard_delete()
@@ -65,7 +65,7 @@ class BaseModelBehaviorMixin:
     def assert_base_model_logic(self, factory):
         """共通フィールド(created_at, remarks)の保存を検証"""
         model, name = self._get_meta(factory)
-        
+
         # remarksの保存確認
         obj = factory.create(remarks="Test Remarks")
         self.assertIsNotNone(obj.created_at, msg=f"{name}: created_at が自動付与されていません。")
@@ -87,7 +87,7 @@ class RenameUniqueTestMixin:
         for field in unique_fields:
             new_val = getattr(obj, field)
             self.assertIn("_del_", str(new_val), msg=f"{name}: フィールド {field} にサフィックスが付与されていません。")
-            self.assertTrue(str(new_val).startswith(str(original_values[field])), 
+            self.assertTrue(str(new_val).startswith(str(original_values[field])),
                             msg=f"{name}: フィールド {field} の元の値が保持されていません。")
 
     def assert_double_rename_protection(self, factory, unique_fields):
@@ -98,9 +98,9 @@ class RenameUniqueTestMixin:
         val_after_first_delete = {field: getattr(obj, field) for field in unique_fields}
 
         obj.perform_rename() # 2回目を手動実行
-        
+
         for field in unique_fields:
-            self.assertEqual(getattr(obj, field), val_after_first_delete[field], 
+            self.assertEqual(getattr(obj, field), val_after_first_delete[field],
                              msg=f"{factory._meta.model.__name__}: 二重リネームによりサフィックスが重複付与されました。")
 
     def assert_unique_constraint_cleared(self, factory, unique_test_data):
@@ -122,7 +122,7 @@ class RenameUniqueTestMixin:
         obj = factory.create()
         # 存在しないフィールドを一時的に追加
         obj.delete_unique_fields.append("non_existent_field")
-        
+
         try:
             obj.delete()
         except Exception as e:
@@ -187,17 +187,17 @@ class BaseCoreModelTestMixin(BaseModelBehaviorMixin, RenameUniqueTestMixin):
         # 動的な引数生成で TypeError を回避
         create_kwargs = {}
         expected_part = ""
-        
+
         if hasattr(model, 'title'):
             create_kwargs['title'] = "TestTitle"
             expected_part = "TestTitle"
         elif hasattr(model, 'name'):
             create_kwargs['name'] = "TestName"
             expected_part = "TestName"
-        
+
         obj = f.create(**create_kwargs)
         display_str = str(obj)
-        
+
         # IDが含まれているか
         self.assertIn(str(obj.pk), display_str, msg=f"{name}: __str__ に PK が含まれていません。")
         # 名前/タイトルまたはクラス名が含まれているか

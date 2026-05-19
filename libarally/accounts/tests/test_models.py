@@ -1,10 +1,10 @@
-from django.test import TestCase
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 from unittest.mock import PropertyMock, patch
 
-from ..models import User, Department
-from ..factories import UserFactory, DepartmentFactory
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+
+from ..factories import DepartmentFactory, UserFactory
+from ..models import Department, User
 
 
 class UserManagerTest(TestCase):
@@ -42,7 +42,7 @@ class UserManagerTest(TestCase):
         """必須引数（email, em_num）が欠落した際に ValueError が発生するか"""
         with self.assertRaisesRegex(ValueError, "メールアドレスは必須です"):
             User.objects.create_user(email="", em_num="EM001", password="pw")
-        
+
         with self.assertRaisesRegex(ValueError, "社員番号は必須です"):
             User.objects.create_user(email="test@example.com", em_num="", password="pw")
 
@@ -102,7 +102,7 @@ class UserModelTest(TestCase):
         with patch('accounts.models.User.active_lending_count', new_callable=PropertyMock) as mock_count:
             mock_count.return_value = 0
             self.assertTrue(user.can_lend)
-            
+
             mock_count.return_value = 4
             self.assertTrue(user.can_lend)
 

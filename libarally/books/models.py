@@ -1,8 +1,7 @@
-from django.db import models, transaction
-from django.urls import reverse
 from core.models.base import BaseModel
 from core.models.mixins import RenameUniqueFieldsMixin
-
+from django.db import models, transaction
+from django.urls import reverse
 
 """
     蔵書（実体）モデル
@@ -17,21 +16,21 @@ class Book(BaseModel,RenameUniqueFieldsMixin):
         MAINTENANCE = 4, "メンテナンス中"
 
     biblio = models.ForeignKey(
-        "Biblio", 
-        on_delete=models.PROTECT, 
-        related_name="books", 
+        "Biblio",
+        on_delete=models.PROTECT,
+        related_name="books",
         verbose_name="書誌情報",
         help_text="この書籍が属するタイトルの書誌情報"
         )
     shelf = models.ForeignKey(
-        "Shelf", 
+        "Shelf",
         on_delete=models.PROTECT,
           related_name="books",
           verbose_name="本棚情報",
           help_text="この書籍が配置されている本棚の情報"
           )
     count =models.PositiveIntegerField(
-        "管理番号", 
+        "管理番号",
         editable=False,
         help_text="同一書誌内での通し番号（自動採番）"
         )
@@ -55,7 +54,7 @@ class Book(BaseModel,RenameUniqueFieldsMixin):
         return f"{self.biblio.title},No.{self.count}"
     def get_absolute_url(self):
         return reverse("books:bookdetail", kwargs={"pk": self.pk})
-    
+
     @property
     def can_be_lent(self):
         return self.status == self.Status.AVAILABLE
@@ -67,12 +66,12 @@ class Book(BaseModel,RenameUniqueFieldsMixin):
                 last_book = Book.objects.select_for_update().filter(
                     biblio=self.biblio
                 ).order_by("-count").first()
-                
+
                 self.count = (last_book.count + 1) if last_book else 1
                 super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
-    
+
 
 
 #書誌情報のモデル

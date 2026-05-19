@@ -1,6 +1,8 @@
 import factory
 from factory.django import DjangoModelFactory
-from .models import Biblio, Book, Shelf, Floor
+
+from .models import Biblio, Book, Floor, Shelf
+
 
 class FloorFactory(DjangoModelFactory):
     class Meta:

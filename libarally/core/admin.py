@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
+
 class ActiveFilter(admin.SimpleListFilter):
     """「有効 / 削除済み / すべて」を切り替えるフィルター"""
     title = _('有効ステータス')
@@ -22,12 +23,12 @@ class ActiveFilter(admin.SimpleListFilter):
             return queryset
         # デフォルトは有効のみ表示
         return queryset.filter(is_active=True)
-    
+
 class BaseLogicalDeleteAdmin(admin.ModelAdmin):
     # 共通の表示設定（必要に応じて子クラスで上書き）
     list_display = ('__str__', 'is_active_display', 'created_at')
     list_filter = (ActiveFilter,)
-    
+
     # 1. 管理画面では「削除済み」も含めて表示する
     def get_queryset(self, request):
         return self.model.all_objects.get_queryset()

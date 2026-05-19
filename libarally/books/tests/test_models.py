@@ -1,9 +1,11 @@
-from django.test import TestCase
+from core.tests.test_mixins import BaseCoreModelTest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from ..models import Biblio, Book, Shelf, Floor
-from ..factories import BiblioFactory, BookFactory, ShelfFactory, FloorFactory
-from core.tests.test_mixins import BaseCoreModelTest
+from django.test import TestCase
+
+from ..factories import BiblioFactory, BookFactory, FloorFactory, ShelfFactory
+from ..models import Biblio, Book, Floor, Shelf
+
 
 class BiblioModelTest(TestCase, BaseCoreModelTest):
     """
@@ -79,10 +81,10 @@ class BookModelTest(TestCase):
         """UniqueConstraint (biblio, count) の重複を検証"""
         biblio = BiblioFactory()
         book1 = BookFactory(biblio=biblio)
-        
+
         # 2冊目を普通に作成（これで正常な shelf も保存される）
         book2 = BookFactory(biblio=biblio)
-        
+
         # 手動で book1 と同じ count をセットして保存を試みる
         book2.count = book1.count
         with self.assertRaises(IntegrityError):

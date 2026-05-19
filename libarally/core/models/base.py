@@ -1,5 +1,7 @@
 from django.db import models
+
 from .mixins import RenameUniqueFieldsMixin
+
 
 class BaseQuerySet(models.QuerySet):
     """プロジェクト共通のクエリ操作"""
@@ -46,14 +48,14 @@ class BaseModel(models.Model):
         # 名前かタイトルがあればそれを表示、なければIDを表示
         name = getattr(self, 'title', getattr(self, 'name', ''))
         return f"[{self.pk}] {name}({self.__class__.__name__})" if name else f"[{self.pk}] ({self.__class__.__name__})"
-    
+
     def delete(self, *args, **kwargs):
         """個別の削除 (instance.delete()) を論理削除に書き換え"""
         self.is_active = False
 
         if isinstance(self, RenameUniqueFieldsMixin):
             self.perform_rename()
-        
+
         self.save(using=kwargs.get('using'))
 
     def hard_delete(self):

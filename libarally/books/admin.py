@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Floor, Shelf, Biblio, Book
+
+from .models import Biblio, Book, Floor, Shelf
 
 admin.site.register(Floor)
 admin.site.register(Shelf)

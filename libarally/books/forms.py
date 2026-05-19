@@ -1,6 +1,6 @@
-from django import forms 
-from .models import Book,Biblio,Shelf,Floor
+from django import forms
 
+from .models import Biblio, Book, Floor, Shelf
 
 
 class BaseForm(forms.ModelForm):
@@ -12,7 +12,7 @@ class BaseForm(forms.ModelForm):
             field.widget.attrs.update({'class': 'form-control'})
             if isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs.update({'class': 'form-check-input'})
-        
+
 
 class BookForm(BaseForm):
     class Meta:
@@ -29,7 +29,7 @@ class ShelfForm(BaseForm):
     class Meta:
         model =Shelf
         fields = ["name", "floor"]
-    
+
 class FllorForm(BaseForm):
     class Meta:
         model = Floor

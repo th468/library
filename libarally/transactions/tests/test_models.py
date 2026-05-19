@@ -1,11 +1,12 @@
-from django.test import TestCase
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from django.conf import settings
 from accounts.factories import UserFactory
-from books.factories import BookFactory, BiblioFactory
-from ..models import Lending, Reservation
+from books.factories import BiblioFactory, BookFactory
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+from django.utils import timezone
+
 from ..factories import LendingFactory, ReservationFactory
+from ..models import Lending, Reservation
+
 
 class LendingManagerTest(TestCase):
     """
@@ -37,14 +38,14 @@ class LendingManagerTest(TestCase):
         # 他のユーザーが同じ書誌を予約
         other_user = UserFactory()
         reservation = Reservation.objects.create_reservation(other_user, self.biblio)
-        
+
         lending = Lending.objects.lend(self.book, self.user)
         Lending.objects.collect(lending, self.user)
-        
+
         # 書籍が取り置き状態（RESERVED=3想定）になっているか
         self.book.refresh_from_db()
-        self.assertEqual(self.book.status, 3) 
-        
+        self.assertEqual(self.book.status, 3)
+
         # 予約がREADY(2)になっているか
         reservation.refresh_from_db()
         self.assertEqual(reservation.status, 2)
@@ -92,7 +93,7 @@ class LendingModelTest(TestCase):
         # 正常系: 未来の期限
         lending = LendingFactory(due_date=timezone.now().date() + timezone.timedelta(days=1))
         self.assertFalse(lending.is_overdue)
-        
+
         # 境界値: 期限当日
         lending.due_date = timezone.now().date()
         self.assertFalse(lending.is_overdue)
@@ -105,7 +106,7 @@ class LendingModelTest(TestCase):
         """境界値: 延滞日数の計算（当日=0, 昨日=1）"""
         lending = LendingFactory(due_date=timezone.now().date() - timezone.timedelta(days=2))
         self.assertEqual(lending.days_overdue, 2)
-        
+
         lending.due_date = timezone.now().date() + timezone.timedelta(days=1)
         self.assertEqual(lending.days_overdue, 0)
 
@@ -128,7 +129,7 @@ class ReservationManagerTest(TestCase):
         """create_reservation: 貸出中の本は予約できないか"""
         book = BookFactory(biblio=self.biblio)
         LendingFactory(user=self.user, book=book, status=1) # LENDING
-        
+
         with self.assertRaises(ValidationError):
             Reservation.objects.create_reservation(self.user, self.biblio)
 
@@ -165,7 +166,7 @@ class ReservationModelTest(TestCase):
         biblio = BiblioFactory()
         # 1つ目の予約
         ReservationFactory(user=user, biblio=biblio, status=1)
-        
+
         # 2つ目の予約（buildで作成してcleanを呼ぶ）
         duplicate_res = ReservationFactory.build(user=user, biblio=biblio, status=1)
         with self.assertRaisesRegex(ValidationError, "既にこの本に有効な予約が入っています"):

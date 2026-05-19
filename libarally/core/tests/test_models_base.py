@@ -1,6 +1,6 @@
-from django.db import models, connection
-from django.test import TestCase
 import factory
+from django.db import connection, models
+from django.test import TestCase
 
 from core.models.base import BaseModel
 from core.models.mixins import RenameUniqueFieldsMixin
@@ -31,9 +31,9 @@ class UniqueRename_Model(BaseModel, RenameUniqueFieldsMixin):
     """リネーム機能を持ち、複数のユニークフィールドを持つモデル"""
     code = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
-    
+
     delete_unique_fields = ['code', 'slug']
-    
+
     class Meta:
         app_label = 'core'
 
@@ -42,7 +42,7 @@ class UniqueRename_Model(BaseModel, RenameUniqueFieldsMixin):
 # -----------------------------------------------------------------------------
 class SchemaManagedTestCase(TestCase):
     """ダミーモデルのテーブルを動的に作成・削除するTestCase"""
-    
+
     # 管理対象のモデルリスト
     dummy_models = [
         PatternA_Model,
@@ -100,7 +100,7 @@ class BaseModelComprehensiveTest(SchemaManagedTestCase, BaseCoreModelTestMixin):
 
     def test_everything(self):
         """全てのバリエーションを網羅実行"""
-        
+
         # パターン1: titleを持つモデルの標準挙動
         with self.subTest(pattern="PatternA (title)"):
             self.factory_class = PatternAFactory
