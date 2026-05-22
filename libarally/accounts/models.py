@@ -87,9 +87,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         # LendingのManager経由でQuerySetのoverdue()を呼び出す
         return self.lending_set.overdue().exists()
 
+    @property
+    def active_lendings(self):
+        """自身の有効な貸出リスト（期限の近い順）"""
+        return self.lending_set.active().select_related("book__biblio").order_by("due_date")
+
+    @property
+    def active_reservations(self):
+        """自身の有効な予約リスト（古い順 ＝ 順番が早くくる順）"""
+        return self.reservation_set.active().select_related("biblio").order_by("created_at")
+
     class Meta:
         verbose_name = "ユーザー"
         verbose_name_plural = "ユーザー"
+...
 
 
 class Department(BaseModel):

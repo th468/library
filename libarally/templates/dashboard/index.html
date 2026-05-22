@@ -1,50 +1,118 @@
 {% extends "common/base.html" %}
 
+{% block title %}ダッシュボード | Libarally{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-    <h2 class="mb-4">{% if user.is_staff %}管理者ダッシュボード{% else %}マイページ{% endif %}</h2>
-    
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm hover-shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">蔵書を確認する</h5>
-                    <p class="card-text small text-muted">本を探したり、詳細情報を確認します。</p>
-                    <div class="list-group list-group-flush">
-                        <a href="{% url 'books:booklist' %}" class="list-group-item list-group-item-action">書籍一覧</a>
-                        <a href="{% url 'books:biblio_list' %}" class="list-group-item list-group-item-action">書誌データ一覧</a>
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="h3 border-bottom pb-2 mb-4">ようこそ、{{ user.name|default:user.em_num }} さん</h2>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- 1. 貸出中の本 -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h3 class="h5 mb-0 text-primary">現在借りている本</h3>
+                <span class="badge rounded-pill bg-primary">{{ user.active_lending_count }}冊</span>
+            </div>
+            <div class="card-body">
+                {% if user.active_lendings %}
+                <div class="list-group list-group-flush">
+                    {% for lending in user.active_lendings %}
+                    <div class="list-group-item px-0 py-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1">
+                                <h4 class="h6 mb-1 text-dark">{{ lending.book.biblio.title }}</h4>
+                                <small class="{% if lending.is_overdue %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                    返却期限: {{ lending.due_date }}
+                                    {% if lending.is_overdue %}(延滞中){% endif %}
+                                </small>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-outline-primary ms-3">詳細</a>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="text-center my-5">
+                    <p class="text-muted mb-0">現在借りている本はありません。</p>
+                </div>
+                {% endif %}
             </div>
         </div>
+    </div>
 
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-success">マイライブラリ</h5>
-                    <p class="card-text small text-muted">現在の利用状況や履歴を管理します。</p>
-                    <div class="list-group list-group-flush">
-                        <a href="{% url 'accounts:info' %}" class="list-group-item list-group-item-action">貸出・予約状況</a>
-                        <a href="#" class="list-group-item list-group-item-action text-muted">お気に入り（開発中）</a>
-                    </div>
-                </div>
+    <!-- 2. 予約中の本 -->
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header bg-white py-3">
+                <h3 class="h5 mb-0 text-primary">予約状況</h3>
             </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-secondary">アカウント設定</h5>
-                    <p class="card-text small text-muted">登録情報の変更や管理業務を行います。</p>
-                    <div class="list-group list-group-flush">
-                        <a href="{% url 'accounts:regist' %}" class="list-group-item list-group-item-action">ユーザー登録（新規）</a>
-                        {% if user.is_staff %}
-                        <a href="{% url 'books:manageindex' %}" class="list-group-item list-group-item-action fw-bold text-danger">管理者専用メニュー</a>
-                        {% endif %}
-                    </div>
+            <div class="card-body">
+                {% if user.active_reservations %}
+                <ul class="list-group list-group-flush">
+                    {% for res in user.active_reservations %}
+                    <li class="list-group-item px-0 py-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="small text-truncate me-2" style="max-width: 70%;">{{ res.biblio.title }}</span>
+                            <span class="badge {% if res.status == 2 %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ res.get_status_display }}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center my-5">
+                    <p class="text-muted mb-0">現在予約している本はありません。</p>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- 3. 新着本エリア -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="h5 mb-0 text-primary">最近追加された本</h3>
+            <a href="{% url 'books:booklist' %}" class="small text-decoration-none">すべて見る &raquo;</a>
+        </div>
+    </div>
+    <div class="row row-cols-2 row-cols-md-5 g-4">
+        {% for biblio in recent_biblios %}
+        <div class="col">
+            <div class="card h-100 text-center border-0 shadow-sm transition-hover">
+                <div class="p-3">
+                    {% if biblio.cover %}
+                    <img src="{{ biblio.cover.url }}" class="img-fluid rounded mb-3" style="max-height: 150px; object-fit: contain;" alt="{{ biblio.title }}">
+                    {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 150px;">
+                        <span class="text-muted small">NO IMAGE</span>
+                    </div>
+                    {% endif %}
+                    <h4 class="small fw-bold text-truncate mb-1">{{ biblio.title }}</h4>
+                    <p class="x-small text-muted mb-0">{{ biblio.author }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .transition-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+    }
+    .x-small {
+        font-size: 0.75rem;
+    }
+</style>
 {% endblock %}
