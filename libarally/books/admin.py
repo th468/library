@@ -6,5 +6,3 @@ admin.site.register(Floor)
 admin.site.register(Shelf)
 admin.site.register(Biblio)
 admin.site.register(Book)
-
-

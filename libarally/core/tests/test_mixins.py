@@ -16,8 +16,11 @@ class BaseModelBehaviorMixin:
 
         self.assertEqual(model.objects.count(), 1, msg=f"{name}: objects に無効データが含まれています。")
         self.assertEqual(model.all_objects.count(), 2, msg=f"{name}: all_objects で全件取得できていません。")
-        self.assertEqual(model.objects.filter(is_active=False).count(), 0,
-                         msg=f"{name}: objects.filter(is_active=False) がデータを返しました。")
+        self.assertEqual(
+            model.objects.filter(is_active=False).count(),
+            0,
+            msg=f"{name}: objects.filter(is_active=False) がデータを返しました。",
+        )
 
     def assert_logical_delete_instance(self, factory):
         """インスタンスの delete() による論理削除を検証"""
@@ -30,8 +33,12 @@ class BaseModelBehaviorMixin:
         obj.refresh_from_db()
 
         self.assertFalse(obj.is_active, msg=f"{name}: delete() 後に is_active が False になっていません。")
-        self.assertGreater(obj.updated_at, old_updated_at, msg=f"{name}: delete() 後に updated_at が更新されていません。")
-        self.assertFalse(model.objects.filter(pk=obj.pk).exists(), msg=f"{name}: 論理削除されたデータが objects に残っています。")
+        self.assertGreater(
+            obj.updated_at, old_updated_at, msg=f"{name}: delete() 後に updated_at が更新されていません。"
+        )
+        self.assertFalse(
+            model.objects.filter(pk=obj.pk).exists(), msg=f"{name}: 論理削除されたデータが objects に残っています。"
+        )
 
     def assert_logical_delete_queryset(self, factory):
         """QuerySet.delete() によるバルク論理削除を検証"""
@@ -45,8 +52,11 @@ class BaseModelBehaviorMixin:
 
         self.assertIsInstance(res, int, msg=f"{name}: QuerySet.delete() の戻り値が更新件数(int)ではありません。")
         self.assertEqual(model.objects.count(), 0, msg=f"{name}: バルク削除後、objects にデータが残っています。")
-        self.assertEqual(model.all_objects.filter(is_active=False).count(), 3,
-                         msg=f"{name}: バルク削除されたデータが all_objects に正しく反映されていません。")
+        self.assertEqual(
+            model.all_objects.filter(is_active=False).count(),
+            3,
+            msg=f"{name}: バルク削除されたデータが all_objects に正しく反映されていません。",
+        )
 
     def assert_hard_delete_behavior(self, factory):
         """hard_delete() による物理削除を検証"""
@@ -55,7 +65,9 @@ class BaseModelBehaviorMixin:
         # インスタンスレベル
         obj = factory.create()
         obj.hard_delete()
-        self.assertFalse(model.all_objects.filter(pk=obj.pk).exists(), msg=f"{name}: インスタンスの物理削除に失敗しました。")
+        self.assertFalse(
+            model.all_objects.filter(pk=obj.pk).exists(), msg=f"{name}: インスタンスの物理削除に失敗しました。"
+        )
 
         # クエリセットレベル
         factory.create_batch(2)
@@ -86,22 +98,29 @@ class RenameUniqueTestMixin:
 
         for field in unique_fields:
             new_val = getattr(obj, field)
-            self.assertIn("_del_", str(new_val), msg=f"{name}: フィールド {field} にサフィックスが付与されていません。")
-            self.assertTrue(str(new_val).startswith(str(original_values[field])),
-                            msg=f"{name}: フィールド {field} の元の値が保持されていません。")
+            self.assertIn(
+                "_del_", str(new_val), msg=f"{name}: フィールド {field} にサフィックスが付与されていません。"
+            )
+            self.assertTrue(
+                str(new_val).startswith(str(original_values[field])),
+                msg=f"{name}: フィールド {field} の元の値が保持されていません。",
+            )
 
     def assert_double_rename_protection(self, factory, unique_fields):
         """二重リネームの防止を検証"""
         obj = factory.create()
-        obj.delete() # 1回目
+        obj.delete()  # 1回目
         obj.refresh_from_db()
         val_after_first_delete = {field: getattr(obj, field) for field in unique_fields}
 
-        obj.perform_rename() # 2回目を手動実行
+        obj.perform_rename()  # 2回目を手動実行
 
         for field in unique_fields:
-            self.assertEqual(getattr(obj, field), val_after_first_delete[field],
-                             msg=f"{factory._meta.model.__name__}: 二重リネームによりサフィックスが重複付与されました。")
+            self.assertEqual(
+                getattr(obj, field),
+                val_after_first_delete[field],
+                msg=f"{factory._meta.model.__name__}: 二重リネームによりサフィックスが重複付与されました。",
+            )
 
     def assert_unique_constraint_cleared(self, factory, unique_test_data):
         """削除後の再登録成功を検証"""
@@ -114,7 +133,9 @@ class RenameUniqueTestMixin:
         try:
             factory.create(**unique_test_data)
         except Exception as e:
-            self.fail(msg=f"{name}: 削除済データのユニーク制約が解放されていないため、再登録に失敗しました。 エラー: {e}")
+            self.fail(
+                msg=f"{name}: 削除済データのユニーク制約が解放されていないため、再登録に失敗しました。 エラー: {e}"
+            )
 
     def assert_rename_robustness(self, factory):
         """存在しないフィールド指定時のエラー耐性を検証"""
@@ -126,7 +147,9 @@ class RenameUniqueTestMixin:
         try:
             obj.delete()
         except Exception as e:
-            self.fail(msg=f"{name}: 存在しないフィールドが delete_unique_fields に含まれるとエラーが発生します。 エラー: {e}")
+            self.fail(
+                msg=f"{name}: 存在しないフィールドが delete_unique_fields に含まれるとエラーが発生します。 エラー: {e}"
+            )
 
 
 class BaseModelTestMixin(BaseModelBehaviorMixin, RenameUniqueTestMixin):
@@ -134,6 +157,7 @@ class BaseModelTestMixin(BaseModelBehaviorMixin, RenameUniqueTestMixin):
     全てのモデルテストの基底となるクラス。
     factory_class を定義するだけで、標準的な全テストを自動実行する。
     """
+
     factory_class = None
     unique_fields = []
     unique_test_data = {}
@@ -167,8 +191,14 @@ class BaseModelTestMixin(BaseModelBehaviorMixin, RenameUniqueTestMixin):
         if issubclass(model, RenameUniqueFieldsMixin) and not self.skip_rename_test:
             rename_cases = [
                 ("RenameWorks", lambda factory: self.assert_rename_works(factory, self.unique_fields)),
-                ("DoubleRenameProtection", lambda factory: self.assert_double_rename_protection(factory, self.unique_fields)),
-                ("UniqueConstraintCleared", lambda factory: self.assert_unique_constraint_cleared(factory, self.unique_test_data)),
+                (
+                    "DoubleRenameProtection",
+                    lambda factory: self.assert_double_rename_protection(factory, self.unique_fields),
+                ),
+                (
+                    "UniqueConstraintCleared",
+                    lambda factory: self.assert_unique_constraint_cleared(factory, self.unique_test_data),
+                ),
                 ("RenameRobustness", self.assert_rename_robustness),
             ]
             for label, method in rename_cases:
@@ -197,7 +227,11 @@ class BaseModelTestMixin(BaseModelBehaviorMixin, RenameUniqueTestMixin):
         if expected_part:
             obj = f.create(**create_kwargs)
             display_str = str(obj)
-            self.assertIn(expected_part, display_str, msg=f"{name}: __str__ に期待される文字列({expected_part})が含まれていません。")
+            self.assertIn(
+                expected_part,
+                display_str,
+                msg=f"{name}: __str__ に期待される文字列({expected_part})が含まれていません。",
+            )
 
         # 2. 名前がない場合のテスト（PK の表示を要求）
         # 名前/タイトルフィールドを空にして作成
@@ -207,4 +241,8 @@ class BaseModelTestMixin(BaseModelBehaviorMixin, RenameUniqueTestMixin):
         }
         obj_no_name = f.create(**empty_kwargs)
         display_str_no_name = str(obj_no_name)
-        self.assertIn(str(obj_no_name.pk), display_str_no_name, msg=f"{name}: 名前がない場合の __str__ に PK が含まれていません。")
+        self.assertIn(
+            str(obj_no_name.pk),
+            display_str_no_name,
+            msg=f"{name}: 名前がない場合の __str__ に PK が含まれていません。",
+        )

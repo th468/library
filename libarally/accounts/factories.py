@@ -6,6 +6,7 @@ from .models import Department
 
 User = get_user_model()
 
+
 class DepartmentFactory(DjangoModelFactory):
     class Meta:
         model = Department

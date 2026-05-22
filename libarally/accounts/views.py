@@ -9,9 +9,13 @@ def regist(request):
     user_form = UserCreationForm(request.POST or None)
     if user_form.is_valid():
         user_form.save()
-    return render(request, "accounts/registration.html", context={
+    return render(
+        request,
+        "accounts/registration.html",
+        context={
             "form": user_form,
-    })
+        },
+    )
 
 
 def login_view(request):
@@ -22,11 +26,11 @@ def login_view(request):
     if login_form.is_valid():
         email = login_form.cleaned_data.get("email")
         password = login_form.cleaned_data.get("password")
-        user = authenticate(request, email=email,password=password)
+        user = authenticate(request, email=email, password=password)
 
         if user is not None and user.is_authenticated:
             login(request, user)
-            #ネクスト処理
+            # ネクスト処理
             if next_url:
                 redirect_url = next_url
             else:
@@ -35,19 +39,18 @@ def login_view(request):
         else:
             login_form.add_error(None, "ログインに失敗しました")
 
+    return render(request, "accounts/login.html", context={"form": login_form, "next_url": next_url})
 
-    return render(request,"accounts/login.html", context={
-        "form": login_form,
-        "next_url": next_url
-    })
 
 def index(request):
     return render(request, "accounts/index.html")
+
 
 @login_required
 def logout_view(request):
     logout(request)
     return redirect("accounts:login")
+
 
 @login_required
 def info(request):

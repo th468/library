@@ -4,29 +4,31 @@ from django.utils.translation import gettext_lazy as _
 
 class ActiveFilter(admin.SimpleListFilter):
     """「有効 / 削除済み / すべて」を切り替えるフィルター"""
-    title = _('有効ステータス')
-    parameter_name = 'is_active_status'
+
+    title = _("有効ステータス")
+    parameter_name = "is_active_status"
 
     def lookups(self, request, model_admin):
         return (
-            ('active', _('有効のみ')),
-            ('deleted', _('削除済みのみ')),
-            ('all', _('すべて')),
+            ("active", _("有効のみ")),
+            ("deleted", _("削除済みのみ")),
+            ("all", _("すべて")),
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'active':
+        if self.value() == "active":
             return queryset.filter(is_active=True)
-        if self.value() == 'deleted':
+        if self.value() == "deleted":
             return queryset.filter(is_active=False)
-        if self.value() == 'all':
+        if self.value() == "all":
             return queryset
         # デフォルトは有効のみ表示
         return queryset.filter(is_active=True)
 
+
 class BaseLogicalDeleteAdmin(admin.ModelAdmin):
     # 共通の表示設定（必要に応じて子クラスで上書き）
-    list_display = ('__str__', 'is_active_display', 'created_at')
+    list_display = ("__str__", "is_active_display", "created_at")
     list_filter = (ActiveFilter,)
 
     # 1. 管理画面では「削除済み」も含めて表示する
@@ -46,12 +48,12 @@ class BaseLogicalDeleteAdmin(admin.ModelAdmin):
         actions = super().get_actions(request)
         # スーパーユーザー以外からは「物理削除（delete_selected）」を消す
         if not request.user.is_superuser:
-            if 'delete_selected' in actions:
-                del actions['delete_selected']
+            if "delete_selected" in actions:
+                del actions["delete_selected"]
         return actions
 
     # 5. 「復元」アクションの追加
-    actions = ['restore_selected']
+    actions = ["restore_selected"]
 
     @admin.action(description="選択されたデータを復元する")
     def restore_selected(self, request, queryset):

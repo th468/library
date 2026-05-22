@@ -5,6 +5,7 @@ from .mixins import RenameUniqueFieldsMixin
 
 class BaseQuerySet(models.QuerySet):
     """プロジェクト共通のクエリ操作"""
+
     def delete(self):
         """バルク削除 (queryset.delete()) を論理削除に書き換え"""
         return super().update(is_active=False)
@@ -17,17 +18,17 @@ class BaseQuerySet(models.QuerySet):
         """有効なデータのみ"""
         return self.filter(is_active=True)
 
+
 class BaseManager(models.Manager.from_queryset(BaseQuerySet)):
     """
     from_queryset で生成したクラスを継承することで、
     QuerySetのメソッドを Manager でも直接呼べるようにしつつ、
     get_queryset でデフォルトのフィルタをかける。
     """
+
     def get_queryset(self):
         # デフォルトで active() を適用した状態で QuerySet を返す
         return super().get_queryset().active()
-
-
 
 
 class BaseModel(models.Model):
@@ -36,10 +37,8 @@ class BaseModel(models.Model):
     updated_at = models.DateTimeField("更新日時", auto_now=True)
     remarks = models.TextField("備考", null=True, blank=True)
 
-
     objects = BaseManager()
     all_objects = BaseQuerySet.as_manager()
-
 
     class Meta:
         abstract = True
@@ -58,7 +57,7 @@ class BaseModel(models.Model):
         if isinstance(self, RenameUniqueFieldsMixin):
             self.perform_rename()
 
-        self.save(using=kwargs.get('using'))
+        self.save(using=kwargs.get("using"))
 
     def hard_delete(self):
         """物理削除を行いたい場合に使用"""

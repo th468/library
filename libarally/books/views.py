@@ -1,9 +1,8 @@
-from django.db.models import Q
+from core.views.mixins import PageTitleMixin, SearchMixin, StaffManagerMixin
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
-from core.views.mixins import PageTitleMixin, SearchMixin, StaffManagerMixin
 from .forms import BiblioForm
 from .models import Biblio, Book, Floor, Shelf
 
@@ -13,7 +12,9 @@ from .models import Biblio, Book, Floor, Shelf
 def index(request):
     return render(request, "books/index.html")
 
+
 # region __蔵書情報関連ビュー__
+
 
 # #書籍一覧
 class BookListView(PageTitleMixin, SearchMixin, ListView):
@@ -33,9 +34,11 @@ class BookDetailView(PageTitleMixin, DetailView):
     context_object_name = "book"
     page_title = "蔵書詳細"
 
-#管理インデックス
+
+# 管理インデックス
 class ManageIndexView(TemplateView):
     template_name = "books/manage_index.html"
+
 
 # #蔵書情報登録
 # class BookCreateView(StaffManagerMixin, CreateView):
@@ -79,7 +82,8 @@ class ManageIndexView(TemplateView):
 
 # region __書誌情報関連ビュー__
 
-#書誌情報一覧
+
+# 書誌情報一覧
 class BiblioListView(PageTitleMixin, SearchMixin, ListView):
     model = Biblio
     template_name = "books/generic_list.html"
@@ -89,14 +93,14 @@ class BiblioListView(PageTitleMixin, SearchMixin, ListView):
     search_fields = ["isbn", "title", "author"]
 
 
-#書誌情報詳細
+# 書誌情報詳細
 class BiblioDetailView(PageTitleMixin, DetailView):
     model = Biblio
     template_name = "books/generic_detail.html"
     page_title = "書誌情報詳細"
 
 
-#書誌情報登録
+# 書誌情報登録
 class BiblioCreateView(StaffManagerMixin, CreateView):
     model = Biblio
     form_class = BiblioForm
@@ -110,8 +114,7 @@ class BiblioCreateView(StaffManagerMixin, CreateView):
         return context
 
 
-
-#書誌情報更新
+# 書誌情報更新
 class BiblioUpdateView(StaffManagerMixin, UpdateView):
     model = Biblio
     form_class = BiblioForm
@@ -124,7 +127,8 @@ class BiblioUpdateView(StaffManagerMixin, UpdateView):
         context["cancel_url"] = reverse_lazy("books:manageindex")
         return context
 
-#書誌情報削除
+
+# 書誌情報削除
 class BiblioDeleteView(StaffManagerMixin, DeleteView):
     model = Biblio
     template_name = "books/delete_form.html"
@@ -136,11 +140,13 @@ class BiblioDeleteView(StaffManagerMixin, DeleteView):
         context["cancel_url"] = reverse_lazy("books:manageindex")
         return context
 
+
 # endregion 書誌情報関連ビュー
 
 # region __本棚関連ビュー__
 
-#本棚一覧
+
+# 本棚一覧
 class ShelfListView(PageTitleMixin, SearchMixin, ListView):
     model = Shelf
     template_name = "books/generic_list.html"
@@ -149,11 +155,13 @@ class ShelfListView(PageTitleMixin, SearchMixin, ListView):
     page_title = "本棚一覧"
     search_fields = ["name", "floor__name"]
 
+
 # endregion 本棚関連ビュー
 
 # region __階情報関連ビュー__
 
-#階情報一覧
+
+# 階情報一覧
 class FloorListView(PageTitleMixin, SearchMixin, ListView):
     model = Floor
     template_name = "books/generic_list.html"
@@ -163,7 +171,7 @@ class FloorListView(PageTitleMixin, SearchMixin, ListView):
     search_fields = ["name"]
 
 
-#階情報詳細
+# 階情報詳細
 class FloorDetailView(PageTitleMixin, DetailView):
     model = Floor
     template_name = "books/generic_detail.html"

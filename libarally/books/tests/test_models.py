@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from ..factories import BiblioFactory, BookFactory, FloorFactory, ShelfFactory
-from ..models import Biblio, Book, Floor, Shelf
+from ..models import Book
 
 
 class BiblioModelTest(TestCase, BaseModelTestMixin):

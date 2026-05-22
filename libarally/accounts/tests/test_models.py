@@ -1,11 +1,11 @@
 from unittest.mock import PropertyMock, patch
 
+from core.tests.test_mixins import BaseModelTestMixin
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from core.tests.test_mixins import BaseModelTestMixin
 from ..factories import DepartmentFactory, UserFactory
-from ..models import Department, User
+from ..models import User
 
 
 class UserManagerTest(TestCase):
@@ -143,4 +143,3 @@ class DepartmentModelTest(TestCase, BaseModelTestMixin):
         dept.name = "a" * 256
         with self.assertRaises(ValidationError):
             dept.full_clean()
-

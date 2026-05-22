@@ -10,32 +10,43 @@ from core.tests.test_mixins import BaseModelTestMixin
 # 1. テスト用具象モデルの定義 (Dummy Models)
 # -----------------------------------------------------------------------------
 
+
 class PatternA_Model(BaseModel):
     """'title' フィールドを持つモデル"""
+
     title = models.CharField(max_length=100)
+
     class Meta:
-        app_label = 'core'
+        app_label = "core"
+
 
 class PatternB_Model(BaseModel):
     """'title' は持たず 'name' フィールドを持つモデル"""
+
     name = models.CharField(max_length=100)
+
     class Meta:
-        app_label = 'core'
+        app_label = "core"
+
 
 class PatternC_Model(BaseModel):
     """どちらのフィールドも持たないモデル"""
+
     class Meta:
-        app_label = 'core'
+        app_label = "core"
+
 
 class UniqueRename_Model(BaseModel, RenameUniqueFieldsMixin):
     """リネーム機能を持ち、複数のユニークフィールドを持つモデル"""
+
     code = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
 
-    delete_unique_fields = ['code', 'slug']
+    delete_unique_fields = ["code", "slug"]
 
     class Meta:
-        app_label = 'core'
+        app_label = "core"
+
 
 # -----------------------------------------------------------------------------
 # 2. テーブルの動的管理を行う基底クラス
@@ -67,33 +78,43 @@ class SchemaManagedTestCase(TestCase):
             for model in reversed(cls.dummy_models):
                 schema_editor.delete_model(model)
 
+
 # -----------------------------------------------------------------------------
 # 3. FactoryBoyによるFactory定義
 # -----------------------------------------------------------------------------
 
+
 class PatternAFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PatternA_Model
+
     title = factory.Sequence(lambda n: f"Title {n}")
+
 
 class PatternBFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PatternB_Model
+
     name = factory.Sequence(lambda n: f"Name {n}")
+
 
 class PatternCFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PatternC_Model
 
+
 class UniqueRenameFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = UniqueRename_Model
+
     code = factory.Sequence(lambda n: f"CODE_{n}")
     slug = factory.Sequence(lambda n: f"slug-{n}")
+
 
 # -----------------------------------------------------------------------------
 # 4. テストクラスの実装
 # -----------------------------------------------------------------------------
+
 
 class BaseModelComprehensiveTest(SchemaManagedTestCase, BaseModelTestMixin):
     """BaseModelの全機能を一括検証する"""
@@ -119,6 +140,6 @@ class BaseModelComprehensiveTest(SchemaManagedTestCase, BaseModelTestMixin):
         # パターン4: リネームMixinの検証
         with self.subTest(pattern="UniqueRename (mixin)"):
             self.factory_class = UniqueRenameFactory
-            self.unique_fields = ['code', 'slug']
-            self.unique_test_data = {'code': 'U-01', 'slug': 's-01'}
+            self.unique_fields = ["code", "slug"]
+            self.unique_test_data = {"code": "U-01", "slug": "s-01"}
             self.test_standard_behavior()

@@ -1,9 +1,8 @@
+from core.models.base import BaseManager, BaseModel, BaseQuerySet
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils import timezone
-
-from core.models.base import BaseModel, BaseQuerySet, BaseManager
 
 # region 貸出管理機能
 
@@ -133,8 +132,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
 
             return lending
 
-
-# 返却処理（書籍から逆引き）
+    # 返却処理（書籍から逆引き）
     def collect_by_book(self, book, user):
         with transaction.atomic():
             # 貸出中のレコードを特定。存在しない場合は例外を投げる
@@ -346,7 +344,9 @@ class Reservation(BaseModel):
 
         # 2. 重複予約のチェック（既に「待ち」または「準備完了」の予約があるか）
         if self.status == self.Status.WAITING:
-            duplicate = self.__class__.objects.active().filter(user=self.user, biblio=self.biblio).exclude(pk=self.pk).exists()
+            duplicate = (
+                self.__class__.objects.active().filter(user=self.user, biblio=self.biblio).exclude(pk=self.pk).exists()
+            )
             if duplicate:
                 raise ValidationError("既にこの本に有効な予約が入っています。")
 

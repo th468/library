@@ -2,8 +2,9 @@ import datetime
 
 
 class RenameUniqueFieldsMixin:
-    #子クラスで定義し、ユニーク制約を持つフィールドをリストとして渡す
+    # 子クラスで定義し、ユニーク制約を持つフィールドをリストとして渡す
     delete_unique_fields = []
+
     def perform_rename(self):
 
         # 子クラスで指定されたフィールドがあれば、一括でリネームを実行
@@ -15,5 +16,5 @@ class RenameUniqueFieldsMixin:
         current_val = getattr(self, field_name)
         # すでに削除済みサフィックスがついていないかチェック（二重付与防止）
         if "_del_" not in str(current_val):
-            now = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+            now = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
             setattr(self, field_name, f"{current_val}_del_{now}")
