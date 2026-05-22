@@ -1,0 +1,18 @@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <h3 class="h6 mb-0 text-primary fw-bold">カテゴリから探す</h3>
+    </div>
+    <div class="list-group list-group-flush">
+        <!-- 「すべて」の選択肢 -->
+        <a href="{% url 'books:booklist' %}" class="list-group-item list-group-item-action border-0 py-2 small {% if not request.GET.category %}active bg-primary{% endif %}">
+            すべての本
+        </a>
+        <!-- 動的に取得されたカテゴリ一覧 -->
+        {% for category in categories %}
+        <a href="{% url 'books:booklist' %}?category={{ category.pk }}" 
+           class="list-group-item list-group-item-action border-0 py-2 small {% if request.GET.category == category.pk|stringformat:'i' %}active bg-primary{% endif %}">
+            {{ category.name }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
