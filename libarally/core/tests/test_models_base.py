@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from core.models.base import BaseModel
 from core.models.mixins import RenameUniqueFieldsMixin
-from core.tests.test_mixins import BaseCoreModelTestMixin
+from core.tests.test_mixins import BaseModelTestMixin
 
 # -----------------------------------------------------------------------------
 # 1. テスト用具象モデルの定義 (Dummy Models)
@@ -95,7 +95,7 @@ class UniqueRenameFactory(factory.django.DjangoModelFactory):
 # 4. テストクラスの実装
 # -----------------------------------------------------------------------------
 
-class BaseModelComprehensiveTest(SchemaManagedTestCase, BaseCoreModelTestMixin):
+class BaseModelComprehensiveTest(SchemaManagedTestCase, BaseModelTestMixin):
     """BaseModelの全機能を一括検証する"""
 
     def test_everything(self):
@@ -122,6 +122,3 @@ class BaseModelComprehensiveTest(SchemaManagedTestCase, BaseCoreModelTestMixin):
             self.unique_fields = ['code', 'slug']
             self.unique_test_data = {'code': 'U-01', 'slug': 's-01'}
             self.test_standard_behavior()
-
-
-

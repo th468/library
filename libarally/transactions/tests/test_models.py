@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
+from core.tests.test_mixins import BaseModelTestMixin
 from ..factories import LendingFactory, ReservationFactory
 from ..models import Lending, Reservation
 
@@ -13,6 +14,7 @@ class LendingManagerTest(TestCase):
     LendingManagerの純粋なロジック（lend, collect, renew）をテストする
     ※Factoryを使わず、Managerメソッド経由で作成・操作する
     """
+
     def setUp(self):
         self.user = UserFactory(lending_period_days=14, lending_limit=5)
         self.biblio = BiblioFactory()
@@ -42,7 +44,7 @@ class LendingManagerTest(TestCase):
         lending = Lending.objects.lend(self.book, self.user)
         Lending.objects.collect(lending, self.user)
 
-        # 書籍が取り置き状態（RESERVED=3想定）になっているか
+        # 書籍が取り置き状態になっているか
         self.book.refresh_from_db()
         self.assertEqual(self.book.status, 3)
 
@@ -59,33 +61,24 @@ class LendingManagerTest(TestCase):
         self.assertEqual(renewed.due_date, original_due + timezone.timedelta(days=7))
 
 
-class LendingModelTest(TestCase):
+class LendingModelTest(TestCase, BaseModelTestMixin):
     """
     Lendingモデルの定義とプロパティの振る舞いをテストする
     """
-    # ① 共通テスト項目
-    def test_create_success(self):
-        lending = LendingFactory()
-        self.assertTrue(Lending.objects.filter(pk=lending.pk).exists())
 
-    def test_str_representation(self):
-        # TransactionBase依存のデフォルト挙動を確認
+    factory_class = LendingFactory
+
+    def run_str_test(self):
+        """__str__ の独自形式（【貸出】）を検証"""
         lending = LendingFactory()
-        self.assertIn("Lending object", str(lending))
+        display_str = str(lending)
+        self.assertIn("【貸出】", display_str)
 
     def test_required_fields(self):
         lending = LendingFactory()
         lending.user = None
         with self.assertRaises(ValidationError):
             lending.full_clean()
-
-    def test_unique_constraint(self):
-        # Lendingには現状unique=Trueがないためパス
-        pass
-
-    def test_max_length_constraint(self):
-        # statusはChoices(Integer)のため対象外
-        pass
 
     # ② 個別テスト項目
     def test_is_overdue_property(self):
@@ -115,6 +108,7 @@ class ReservationManagerTest(TestCase):
     """
     ReservationManagerの純粋なロジック（create_reservation等）をテストする
     """
+
     def setUp(self):
         self.user = UserFactory()
         self.biblio = BiblioFactory()
@@ -128,36 +122,30 @@ class ReservationManagerTest(TestCase):
     def test_create_reservation_fail_already_borrowing(self):
         """create_reservation: 貸出中の本は予約できないか"""
         book = BookFactory(biblio=self.biblio)
-        LendingFactory(user=self.user, book=book, status=1) # LENDING
+        LendingFactory(user=self.user, book=book, status=1)  # LENDING
 
         with self.assertRaises(ValidationError):
             Reservation.objects.create_reservation(self.user, self.biblio)
 
 
-class ReservationModelTest(TestCase):
+class ReservationModelTest(TestCase, BaseModelTestMixin):
     """
     Reservationモデルのバリデーション（clean）をテストする
     """
-    # ① 共通テスト項目
-    def test_create_success(self):
-        res = ReservationFactory()
-        self.assertTrue(Reservation.objects.filter(pk=res.pk).exists())
 
-    def test_str_representation(self):
+    factory_class = ReservationFactory
+
+    def run_str_test(self):
+        """__str__ の独自形式（【予約】）を検証"""
         res = ReservationFactory()
-        self.assertIn("Reservation object", str(res))
+        display_str = str(res)
+        self.assertIn("【予約】", display_str)
 
     def test_required_fields(self):
         res = ReservationFactory()
         res.user = None
         with self.assertRaises(ValidationError):
             res.full_clean()
-
-    def test_unique_constraint(self):
-        pass
-
-    def test_max_length_constraint(self):
-        pass
 
     # ② 個別テスト項目
     def test_clean_duplicate_reservation(self):
