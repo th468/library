@@ -12,7 +12,8 @@ class SearchMixin:
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        query = self.request.GET.get("q")
+        # .strip() を追加し、空白文字のみの入力を「検索なし」として扱う
+        query = self.request.GET.get("q", "").strip()
         if query and self.search_fields:
             search_query = Q()
             for field in self.search_fields:

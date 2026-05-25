@@ -1,21 +1,21 @@
 from django.urls import path
-
 from . import views
 
 app_name = "books"
 
-
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("book/", views.BookListView.as_view(), name="booklist"),
-    # path("book/detail/<int:pk>/", views.BookDetailView.as_view(), name="bookdetail"),
-    # path("manage/index/", views.ManageIndexView.as_view(), name="manageindex"),
-    # path("manage/book/create/", views.BookCreateView.as_view(), name="book_create"),
-    # path("manage/book/update/<int:pk>/", views.BookUpdateView.as_view(), name="book_update"),
-    # path("manage/book/delete/<int:pk>/", views.BookDeleteView.as_view(), name="book_delete"),
-    path("manage/biblio/list/", views.BiblioListView.as_view(), name="biblio_list"),
-    path("biblio/detail/<int:pk>/", views.BiblioDetailView.as_view(), name="biblio_detail"),
-    path("manage/biblio/create/", views.BiblioCreateView.as_view(), name="biblio_create"),
-    path("manage/biblio/update/<int:pk>/", views.BiblioUpdateView.as_view(), name="biblio_update"),
-    path("manage/biblio/delete/<int:pk>/", views.BiblioDeleteView.as_view(), name="biblio_delete"),
+    # ユーザー用（公開画面）
+    path("list/", views.BiblioSearchListView.as_view(), name="booklist"),
+    path("detail/<int:pk>/", views.BiblioDetailView.as_view(), name="biblio_detail"),
+
+    # 管理用（スタッフ専用）
+    path("manage/", views.ManageIndexView.as_view(), name="manageindex"),
+    path("manage/biblio/", views.ManageBiblioListView.as_view(), name="biblio_list"),
+    path("manage/biblio/detail/<int:pk>/", views.ManageBiblioDetailView.as_view(), name="biblio_manage_detail"),
+    path("manage/biblio/create/", views.BiblioCreateView.as_view(), name="bibliocreate"),
+    path("manage/biblio/update/<int:pk>/", views.BiblioUpdateView.as_view(), name="biblioupdate"),
+    path("manage/biblio/delete/<int:pk>/", views.BiblioDeleteView.as_view(), name="bibliodelete"),
+    path("manage/shelf/", views.ShelfListView.as_view(), name="shelflist"),
+    path("manage/floor/", views.FloorListView.as_view(), name="floorlist"),
+    path("manage/floor/detail/<int:pk>/", views.FloorDetailView.as_view(), name="floordetail"),
 ]

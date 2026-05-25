@@ -35,6 +35,21 @@ class Biblio(BaseModel):
     def get_absolute_url(self):
         return reverse("books:biblio_detail", kwargs={"pk": self.pk})
 
+    @property
+    def total_count(self):
+        """このタイトルの全在庫数を返す"""
+        return self.books.count()
+
+    @property
+    def available_count(self):
+        """現在貸出可能な（在庫あり）冊数を返す"""
+        return self.books.filter(status=1).count()  # 1: AVAILABLE
+
+    @property
+    def is_available(self):
+        """1冊でも貸出可能ならTrue"""
+        return self.available_count > 0
+
     class Meta:
         verbose_name_plural = "書誌情報"
 

@@ -1,15 +1,15 @@
 {% extends "common/base.html" %}
 {% load static %}
 
-{% block title %}{{ book.biblio.title }} | Libarally{% endblock %}
+{% block title %}{{ biblio.title }} | Libarally{% endblock %}
 
 {% block content %}
 <div class="row g-5">
-    <!-- 左カラム：ビジュアル & クイック情報 -->
+    <!-- 左カラム：書影 & クイック情報 -->
     <div class="col-md-4">
         <div class="card border-0 shadow-sm overflow-hidden mb-4">
-            {% if book.biblio.cover %}
-            <img src="{{ book.biblio.cover.url }}" class="img-fluid w-100" style="min-height: 400px; object-fit: cover;" alt="{{ book.biblio.title }}">
+            {% if biblio.cover %}
+            <img src="{{ biblio.cover.url }}" class="img-fluid w-100" style="min-height: 400px; object-fit: cover;" alt="{{ biblio.title }}">
             {% else %}
             <div class="bg-light d-flex flex-column align-items-center justify-content-center" style="height: 400px;">
                 <i class="bi bi-book text-muted" style="font-size: 4rem;"></i>
@@ -17,56 +17,24 @@
             </div>
             {% endif %}
             <div class="card-body bg-light border-top text-center py-3">
-                <div class="mb-2">
-                    {% if book.can_be_lent %}
-                    <span class="badge bg-success px-3 py-2 fs-6 shadow-sm">在庫あり</span>
+                <div class="mb-1">
+                    {% if biblio.is_available %}
+                    <span class="badge bg-success px-3 py-2 shadow-sm">在庫あり ({{ biblio.available_count }}/{{ biblio.total_count }})</span>
                     {% else %}
-                    <span class="badge bg-danger px-3 py-2 fs-6 shadow-sm">{{ book.get_status_display }}</span>
+                    <span class="badge bg-danger px-3 py-2 shadow-sm">全{{ biblio.total_count }}冊 貸出中</span>
                     {% endif %}
-                </div>
-                <!-- 段階的開示：階数のみ先行公開 -->
-                <div class="text-primary fw-bold">
-                    <i class="bi bi-geo-alt-fill"></i> 所在フロア：{{ book.shelf.floor.name }}
                 </div>
             </div>
         </div>
 
-        <!-- アクションエリア -->
-        <div class="d-grid gap-3">
-            {% if book.can_be_lent %}
-            <form action="{% url 'transactions:lend' book.pk %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary btn-lg py-3 rounded-pill shadow w-100">
-                    この本を借りる
-                </button>
-            </form>
-            {% else %}
-            <form action="{% url 'transactions:reserve' book.pk %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-warning btn-lg py-3 rounded-pill shadow text-white w-100">
-                    この本を予約する
-                </button>
-            </form>
-            {% endif %}
-            <a href="{% url 'books:booklist' %}" class="btn btn-link text-muted text-decoration-none text-center">
-                <i class="bi bi-arrow-left"></i> 蔵書一覧に戻る
+        <div class="d-grid gap-2">
+            <a href="{% url 'books:booklist' %}" class="btn btn-outline-secondary rounded-pill">
+                <i class="bi bi-arrow-left"></i> 検索結果に戻る
             </a>
         </div>
-...
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // セッションに reveal_location フラグがある場合、モーダルを表示
-        {% if request.session.reveal_location %}
-            var locationModal = new bootstrap.Modal(document.getElementById('locationRevealModal'));
-            locationModal.show();
-        {% endif %}
-    });
-</script>
-{% endblock %}
     </div>
 
-    <!-- 右カラム：詳細情報 -->
+    <!-- 右カラム：書誌詳細 -->
     <div class="col-md-8">
         <div class="mb-4">
             <nav aria-label="breadcrumb">
@@ -76,12 +44,12 @@
                     <li class="breadcrumb-item active fw-bold" aria-current="page">書籍詳細</li>
                 </ol>
             </nav>
-            <h1 class="display-6 fw-bold text-dark mb-1">{{ book.biblio.title }}</h1>
-            {% if book.biblio.subtitle %}
-            <p class="h5 text-muted fw-normal mb-3">{{ book.biblio.subtitle }}</p>
+            <h1 class="display-6 fw-bold text-dark mb-1">{{ biblio.title }}</h1>
+            {% if biblio.subtitle %}
+            <p class="h5 text-muted fw-normal mb-3">{{ biblio.subtitle }}</p>
             {% endif %}
             <div class="d-flex flex-wrap gap-2 mb-4">
-                {% for cat in book.biblio.categories.all %}
+                {% for cat in biblio.categories.all %}
                 <span class="badge bg-light text-primary border border-primary-subtle fw-normal px-3 py-2">{{ cat.name }}</span>
                 {% endfor %}
             </div>
@@ -91,36 +59,82 @@
         <section class="mb-5 bg-white p-4 rounded-3 shadow-sm border-start border-primary border-5">
             <h2 class="h6 fw-bold text-primary text-uppercase mb-3">内容紹介</h2>
             <div class="text-secondary leading-relaxed" style="white-space: pre-wrap;">
-                {{ book.biblio.description|default:"この書籍の紹介文はまだ登録されていません。" }}
+                {{ biblio.description|default:"この書籍の紹介文はまだ登録されていません。" }}
             </div>
         </section>
 
-        <!-- 書籍スペック -->
+        <!-- 在庫一覧（ここから特定のBookを選択して借りる） -->
+        <section class="mb-5">
+            <h2 class="h6 fw-bold text-primary text-uppercase mb-3 ps-1">蔵書（在庫）状況</h2>
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">管理番号</th>
+                            <th>所在フロア</th>
+                            <th>状況</th>
+                            <th class="text-center">アクション</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in biblio.books.all %}
+                        <tr>
+                            <td class="ps-4 fw-bold">No.{{ book.count }}</td>
+                            <td><span class="text-primary fw-bold"><i class="bi bi-geo-alt"></i> {{ book.shelf.floor.name }}</span></td>
+                            <td>
+                                {% if book.can_be_lent %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">貸出可</span>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ book.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if book.can_be_lent %}
+                                <form action="{% url 'transactions:lend' book.pk %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">
+                                        借りる
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form action="{% url 'transactions:reserve' book.pk %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-warning btn-sm text-white rounded-pill px-3">
+                                        予約する
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-muted mt-2 ps-1">※貸出・予約ボタンを押すと、具体的な棚の場所が表示されます。</p>
+        </section>
+
+        <!-- 書籍データ詳細 -->
         <section>
-            <h2 class="h6 fw-bold text-primary text-uppercase mb-3 ps-1">書籍詳細データ</h2>
+            <h2 class="h6 fw-bold text-primary text-uppercase mb-3 ps-1">出版データ</h2>
             <div class="card border-0 bg-light shadow-sm">
                 <div class="card-body p-0">
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr class="border-bottom border-white">
                                 <th class="ps-4 py-3 text-muted fw-normal" style="width: 30%;">著者</th>
-                                <td class="py-3 text-dark fw-bold">{{ book.biblio.author }}</td>
+                                <td class="py-3 text-dark fw-bold">{{ biblio.author }}</td>
                             </tr>
                             <tr class="border-bottom border-white">
                                 <th class="ps-4 py-3 text-muted fw-normal">出版社</th>
-                                <td class="py-3 text-dark">{{ book.biblio.publisher }}</td>
+                                <td class="py-3 text-dark">{{ biblio.publisher }}</td>
                             </tr>
                             <tr class="border-bottom border-white">
                                 <th class="ps-4 py-3 text-muted fw-normal">出版日</th>
-                                <td class="py-3 text-dark">{{ book.biblio.published_date|default:"-" }}</td>
-                            </tr>
-                            <tr class="border-bottom border-white">
-                                <th class="ps-4 py-3 text-muted fw-normal">ISBN</th>
-                                <td class="py-3 text-dark font-monospace">{{ book.biblio.isbn }}</td>
+                                <td class="py-3 text-dark">{{ biblio.published_date|default:"-" }}</td>
                             </tr>
                             <tr>
-                                <th class="ps-4 py-3 text-muted fw-normal">管理番号</th>
-                                <td class="py-3 text-dark">No.{{ book.count }}</td>
+                                <th class="ps-4 py-3 text-muted fw-normal">ISBN</th>
+                                <td class="py-3 text-dark font-monospace">{{ biblio.isbn }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -130,64 +144,35 @@
     </div>
 </div>
 
-<!-- 場所提示モーダル (段階的開示の最終段階) -->
-<!-- ※本来は非同期通信の成功後に発火させますが、現在はUI確認のためボタンに紐付けています -->
-<div class="modal fade" id="locationRevealModal" tabindex="-1" aria-labelledby="locationRevealModalLabel" aria-hidden="true">
+<!-- 場所提示モーダル (セッションフラグによる自動発火) -->
+<div class="modal fade" id="locationRevealModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg overflow-hidden rounded-4">
-            <div class="modal-header bg-primary text-white py-4 border-0">
-                <h5 class="modal-title fw-bold" id="locationRevealModalLabel">
-                    <i class="bi bi-check-circle-fill me-2 text-warning"></i> 手続きが完了しました！
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4 bg-white">
-                <div class="row align-items-center g-4">
-                    <div class="col-md-6 text-center text-md-start">
-                        <div class="mb-4">
-                            <h6 class="text-muted small text-uppercase fw-bold mb-1">受け取り場所</h6>
-                            <div class="display-5 fw-bold text-primary mb-3">{{ book.shelf.floor.name }}</div>
-                            <div class="p-3 bg-light rounded-3 border border-primary-subtle shadow-sm">
-                                <p class="mb-1 fw-bold text-dark"><i class="bi bi-layers-half"></i> {{ book.shelf.name }}</p>
-                                <p class="text-muted small mb-0">{{ book.shelf.description|default:"詳細は現地で確認してください。" }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card border-0 bg-light p-2 shadow-sm">
-                            {% if book.shelf.floor.map %}
-                            <img src="{{ book.shelf.floor.map.url }}" class="img-fluid rounded border" alt="Floor Map">
-                            {% else %}
-                            <div class="w-100 d-flex flex-column align-items-center justify-content-center text-muted" style="height: 200px;">
-                                <i class="bi bi-map mb-2 h2"></i>
-                                <span class="small">マップ未登録</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
+            {% if request.session.reveal_location %}
+                <div class="modal-header bg-primary text-white py-4 border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-check-circle-fill me-2 text-warning"></i> 手続きが完了しました！</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                
-                {% if book.shelf.location_photo %}
-                <div class="mt-4 pt-4 border-top">
-                    <h6 class="text-muted small text-uppercase fw-bold mb-3 text-center">現地の写真（目印）</h6>
-                    <img src="{{ book.shelf.location_photo.url }}" class="img-fluid rounded shadow-sm w-100" style="max-height: 280px; object-fit: cover;" alt="Shelf Photo">
+                <div class="modal-body p-4 bg-white text-center">
+                    <p class="mb-4">本がある「正確な場所」を確認し、受け取りに行ってください。</p>
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-primary rounded-pill px-5">マイページで場所を確認する</a>
                 </div>
-                {% endif %}
-            </div>
-            <div class="modal-footer bg-light border-0 py-4 justify-content-center">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-5 me-2" data-bs-dismiss="modal">閉じる</button>
-                <a href="{% url 'dashboard:index' %}" class="btn btn-primary rounded-pill px-5 shadow-sm">マイページへ</a>
-            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if request.session.reveal_location %}
+            var locationModal = new bootstrap.Modal(document.getElementById('locationRevealModal'));
+            locationModal.show();
+        {% endif %}
+    });
+</script>
+
 <style>
-    .leading-relaxed {
-        line-height: 1.8;
-    }
-    .font-monospace {
-        letter-spacing: 0.05em;
-    }
+    .leading-relaxed { line-height: 1.8; }
+    .font-monospace { letter-spacing: 0.05em; }
 </style>
 {% endblock %}
