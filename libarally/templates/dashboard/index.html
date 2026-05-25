@@ -74,7 +74,42 @@
     </div>
 </div>
 
-<!-- 3. 新着本エリア -->
+<!-- 3. 貸出履歴エリア（ユーザー固有の情報を優先） -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h3 class="h5 mb-4 text-primary">最近読んだ本（履歴）</h3>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                {% if user.lending_history %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">返却日</th>
+                                <th>タイトル</th>
+                                <th>著者</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for history in user.lending_history|slice:":5" %}
+                            <tr>
+                                <td class="ps-4 small text-muted">{{ history.return_date|date:"Y/m/d" }}</td>
+                                <td class="fw-bold text-dark">{{ history.book.biblio.title }}</td>
+                                <td class="small">{{ history.book.biblio.author }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center my-4">読書履歴はまだありません。</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 新着本エリア -->
 <div class="row mt-5">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">

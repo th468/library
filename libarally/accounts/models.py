@@ -97,6 +97,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         """自身の有効な予約リスト（古い順 ＝ 順番が早くくる順）"""
         return self.reservation_set.active().select_related("biblio").order_by("created_at")
 
+    @property
+    def lending_history(self):
+        """自身の過去の貸出履歴（返却済みのもの、新しい順）"""
+        return (
+            self.lending_set.filter(return_date__isnull=False)
+            .select_related("book__biblio")
+            .order_by("-return_date")
+        )
+
     class Meta:
         verbose_name = "ユーザー"
         verbose_name_plural = "ユーザー"
