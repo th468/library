@@ -15,49 +15,51 @@ class LendActionView(LoginRequiredMixin, View):
         book = get_object_or_404(Book, pk=pk)
         try:
             Lending.objects.lend(book, request.user)
-            # 成功フラグをセッションにセット（詳細画面でのモーダル発火用）
-            request.session['reveal_location'] = True
+            request.session["reveal_mode"] = "lend"
             messages.success(request, f"「{book.biblio.title}」の貸出手続きが完了しました。")
         except ValidationError as e:
             messages.error(request, e.message)
-        
-        return redirect(reverse('books:bookdetail', kwargs={'pk': pk}))
+
+        # Book ID ではなく Biblio ID でリダイレクト
+        return redirect(reverse("books:bookdetail", kwargs={"pk": book.biblio.pk}))
 
 
 # 予約実行
 class ReserveActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        # 詳細画面のBookIDから予約を行う
         book = get_object_or_404(Book, pk=pk)
         try:
             Reservation.objects.create_reservation(request.user, book.biblio)
-            request.session['reveal_location'] = True
+            request.session["reveal_mode"] = "reserve"
             messages.success(request, f"「{book.biblio.title}」を予約しました。")
         except ValidationError as e:
             messages.error(request, e.message)
-        
-        return redirect(reverse('books:bookdetail', kwargs={'pk': pk}))
+
+        # Book ID ではなく Biblio ID でリダイレクト
+        return redirect(reverse("books:bookdetail", kwargs={"pk": book.biblio.pk}))
 
 
 # 返却実行
 class CollectActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        lending = get_object_or_404(Lending, pk=pk)
+        # テンプレートからは Book ID が渡されるため、その本のアクティブな貸出を探す
+        lending = get_object_or_404(Lending, book__pk=pk, user=request.user, return_date__isnull=True)
         try:
             Lending.objects.collect(lending, request.user)
             messages.success(request, "返却が完了しました。")
         except ValidationError as e:
             messages.error(request, e.message)
-        return redirect('dashboard:index')
+        return redirect("dashboard:index")
 
 
 # 延長実行
 class RenewActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        lending = get_object_or_404(Lending, pk=pk)
+        # テンプレートからは Book ID が渡されることを想定し、その本のアクティブな貸出を探す
+        lending = get_object_or_404(Lending, book__pk=pk, user=request.user, return_date__isnull=True)
         try:
             Lending.objects.renew(lending, request.user)
             messages.success(request, "貸出期間を延長しました。")
         except ValidationError as e:
             messages.error(request, e.message)
-        return redirect('dashboard:index')
+        return redirect("dashboard:index")

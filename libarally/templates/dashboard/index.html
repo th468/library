@@ -30,7 +30,7 @@
                                     {% if lending.is_overdue %}(延滞中){% endif %}
                                 </small>
                             </div>
-                            <a href="#" class="btn btn-sm btn-outline-primary ms-3">詳細</a>
+                            <a href="{% url 'books:bookdetail' lending.book.biblio.pk %}" class="btn btn-sm btn-outline-primary ms-3">詳細</a>
                         </div>
                     </div>
                     {% endfor %}

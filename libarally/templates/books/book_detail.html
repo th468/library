@@ -44,7 +44,9 @@
                     <li class="breadcrumb-item active fw-bold" aria-current="page">書籍詳細</li>
                 </ol>
             </nav>
-            <h1 class="display-6 fw-bold text-dark mb-1">{{ biblio.title }}</h1>
+            <div class="mb-1">
+                <h1 class="display-6 fw-bold text-dark mb-0">{{ biblio.title }}</h1>
+            </div>
             {% if biblio.subtitle %}
             <p class="h5 text-muted fw-normal mb-3">{{ biblio.subtitle }}</p>
             {% endif %}
@@ -63,8 +65,8 @@
             </div>
         </section>
 
-        <!-- 在庫一覧（ここから特定のBookを選択して借りる） -->
-        <section class="mb-5">
+        <!-- 在庫一覧 -->
+        <section class="mb-4">
             <h2 class="h6 fw-bold text-primary text-uppercase mb-3 ps-1">蔵書（在庫）状況</h2>
             <div class="card border-0 shadow-sm overflow-hidden">
                 <table class="table table-hover align-middle mb-0">
@@ -89,25 +91,54 @@
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                {% if book.can_be_lent %}
-                                <form action="{% url 'transactions:lend' book.pk %}" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">
-                                        借りる
-                                    </button>
-                                </form>
-                                {% else %}
-                                <form action="{% url 'transactions:reserve' book.pk %}" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-warning btn-sm text-white rounded-pill px-3">
-                                        予約する
-                                    </button>
-                                </form>
-                                {% endif %}
+                                <div class="d-flex justify-content-center">
+                                    {% if book.pk in user_lending_book_ids %}
+                                        <!-- 自身が借りている場合：返却ボタン -->
+                                        <form action="{% url 'transactions:collect' book.pk %}" method="post" onsubmit="return confirm('この本を返却しますか？');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success btn-sm rounded-pill px-4">
+                                                <i class="bi bi-arrow-return-left"></i> 返却
+                                            </button>
+                                        </form>
+                                    {% elif book.can_be_lent %}
+                                        <!-- 貸出可能な場合：借りるボタン -->
+                                        <form action="{% url 'transactions:lend' book.pk %}" method="post" onsubmit="return confirm('この本を借りますか？\n※すぐに受け取りに行く必要があります。');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">
+                                                今すぐ借りる
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <!-- 貸出中の場合はここではアクションなし（予約セクションへ誘導） -->
+                                        <span class="text-muted small">貸出中</span>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
+                </table>
+            </div>
+            <p class="small text-muted mt-2 ps-1">※ボタンを押すと、具体的な棚の場所が表示されます。</p>
+        </section>
+
+        <!-- 予約セクション (役割を分離) -->
+        <section class="mb-5">
+            <div class="card border-0 bg-info bg-opacity-10 border-start border-info border-5 shadow-sm">
+                <div class="card-body d-md-flex align-items-center justify-content-between p-4">
+                    <div class="mb-3 mb-md-0">
+                        <h3 class="h6 fw-bold text-info mb-1"><i class="bi bi-calendar-plus-fill"></i> 後で読みたい・予約したい場合</h3>
+                        <p class="small text-muted mb-0">在庫がない場合や、後で受け取りたい方はこちらから予約リストへ登録できます。</p>
+                    </div>
+                    <form action="{% url 'transactions:reserve' biblio.books.first.pk %}" method="post" onsubmit="return confirm('このタイトルを予約しますか？');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-info text-white rounded-pill px-5 fw-bold shadow-sm">
+                            この本を予約する
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
                 </table>
             </div>
             <p class="small text-muted mt-2 ps-1">※貸出・予約ボタンを押すと、具体的な棚の場所が表示されます。</p>
@@ -148,14 +179,62 @@
 <div class="modal fade" id="locationRevealModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg overflow-hidden rounded-4">
-            {% if request.session.reveal_location %}
+            {% if reveal_mode == 'lend' %}
+                <!-- 貸出成功モード：場所を詳しく案内 -->
                 <div class="modal-header bg-primary text-white py-4 border-0">
                     <h5 class="modal-title fw-bold"><i class="bi bi-check-circle-fill me-2 text-warning"></i> 手続きが完了しました！</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4 bg-white text-center">
-                    <p class="mb-4">本がある「正確な場所」を確認し、受け取りに行ってください。</p>
-                    <a href="{% url 'dashboard:index' %}" class="btn btn-primary rounded-pill px-5">マイページで場所を確認する</a>
+                <div class="modal-body p-4 bg-white">
+                    <div class="row align-items-center g-4">
+                        <div class="col-md-6 text-center text-md-start">
+                            <div class="mb-4">
+                                <h6 class="text-muted small text-uppercase fw-bold mb-1">受け取り場所</h6>
+                                <div class="display-5 fw-bold text-primary mb-3">{{ biblio.books.first.shelf.floor.name }}</div>
+                                <div class="p-3 bg-light rounded-3 border border-primary-subtle shadow-sm">
+                                    <p class="mb-1 fw-bold text-dark"><i class="bi bi-layers-half"></i> {{ biblio.books.first.shelf.name }}</p>
+                                    <p class="text-muted small mb-0">{{ biblio.books.first.shelf.description|default:"詳細は現地で確認してください。" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light p-2 shadow-sm">
+                                {% if biblio.books.first.shelf.floor.map %}
+                                <img src="{{ biblio.books.first.shelf.floor.map.url }}" class="img-fluid rounded border" alt="Floor Map">
+                                {% else %}
+                                <div class="w-100 d-flex flex-column align-items-center justify-content-center text-muted" style="height: 200px;">
+                                    <i class="bi bi-map mb-2 h2"></i>
+                                    <span class="small">マップ未登録</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 py-4 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-5 me-2" data-bs-dismiss="modal">閉じる</button>
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-primary rounded-pill px-5 shadow-sm">マイページへ</a>
+                </div>
+
+            {% elif reveal_mode == 'reserve' %}
+                <!-- 予約成功モード：状況確認を促す案内 -->
+                <div class="modal-header bg-info text-white py-4 border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-calendar-check-fill me-2"></i> 予約を受け付けました</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-5 bg-white text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-info-circle text-info display-1"></i>
+                    </div>
+                    <h4 class="h5 fw-bold mb-3">予約リストへ登録されました</h4>
+                    <p class="text-muted mb-4">
+                        本が返却され、準備が整い次第お知らせします。<br>
+                        現在の予約順位や状況は、マイページからいつでも確認できます。
+                    </p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-5" data-bs-dismiss="modal">詳細に戻る</button>
+                        <a href="{% url 'dashboard:index' %}" class="btn btn-info text-white rounded-pill px-5 shadow-sm">マイページで確認</a>
+                    </div>
                 </div>
             {% endif %}
         </div>
@@ -164,7 +243,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        {% if request.session.reveal_location %}
+        {% if reveal_mode %}
             var locationModal = new bootstrap.Modal(document.getElementById('locationRevealModal'));
             locationModal.show();
         {% endif %}

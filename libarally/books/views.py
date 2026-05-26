@@ -33,7 +33,6 @@ class BiblioSearchListView(PageTitleMixin, SearchMixin, ListView):
 
         return queryset.order_by(order_by).prefetch_related("categories", "books").distinct()
 
-
 # #蔵書詳細
 class BiblioDetailView(LoginRequiredMixin, PageTitleMixin, DetailView):
     model = Biblio
@@ -42,10 +41,25 @@ class BiblioDetailView(LoginRequiredMixin, PageTitleMixin, DetailView):
     page_title = "書籍詳細"
 
     def get_queryset(self):
-        return super().get_queryset().prefetch_related(
-            'categories',
-            'books__shelf__floor'
-        )
+        # 詳細画面でも在庫(books)と所在を効率よく取得
+        return super().get_queryset().prefetch_related("categories", "books__shelf__floor")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # セッションから表示モードを取得し、同時に削除
+        context["reveal_mode"] = self.request.session.pop("reveal_mode", None)
+
+        # ユーザーが現在借りている本の ID リストを取得（返却ボタンの判定用）
+        if self.request.user.is_authenticated:
+            context["user_lending_book_ids"] = list(
+                self.request.user.lending_set.filter(return_date__isnull=True).values_list(
+                    "book_id", flat=True
+                )
+            )
+        else:
+            context["user_lending_book_ids"] = []
+        return context
+
 
 # endregion
 

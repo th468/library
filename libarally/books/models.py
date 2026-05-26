@@ -33,7 +33,7 @@ class Biblio(BaseModel):
         return super().__str__()
 
     def get_absolute_url(self):
-        return reverse("books:biblio_detail", kwargs={"pk": self.pk})
+        return reverse("books:bookdetail", kwargs={"pk": self.pk})
 
     @property
     def total_count(self):
@@ -95,8 +95,8 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
             return f"【現物】{self.biblio.title} (No.{self.count})"
         return super().__str__()
 
-    def get_absolute_url(self):
-        return reverse("books:bookdetail", kwargs={"pk": self.pk})
+    # def get_absolute_url(self):
+    #     return reverse("books:bookdetail", kwargs={"pk": self.pk})
 
     @property
     def can_be_lent(self):
