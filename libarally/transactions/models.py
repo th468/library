@@ -13,13 +13,13 @@ class LendingQuerySet(BaseQuerySet):
     貸出データの検索を便利にするカスタムQuerySet
     """
 
-    def active(self):
-        """プロジェクト標準の有効フラグに加え、現在貸出中のもの（返却されていないもの）を返す"""
-        return super().active().filter(return_date__isnull=True)
+    def ongoing(self):
+        """現在貸出中のもの（返却されていないもの）を返す"""
+        return self.filter(return_date__isnull=True)
 
     def overdue(self):
         """期限を過ぎている貸出データを返す"""
-        return self.active().filter(due_date__lt=timezone.now().date())
+        return self.ongoing().filter(due_date__lt=timezone.now().date())
 
 
 # 貸出情報用Manager
@@ -51,7 +51,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
             from .models import Reservation
 
             # その本が「準備完了」かつ「予約者が自分以外」ならエラー
-            res = Reservation.objects.active().filter(book=target_book, status=Reservation.Status.READY).first()
+            res = Reservation.objects.ongoing().filter(book=target_book, status=Reservation.Status.READY).first()
             if res and res.user != user:
                 raise ValidationError("この本は現在、他の予約者のために取り置き中です。")
 
@@ -136,7 +136,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
     def collect_by_book(self, book, user):
         with transaction.atomic():
             # 貸出中のレコードを特定。存在しない場合は例外を投げる
-            lending = self.active().filter(book=book).first()
+            lending = self.ongoing().filter(book=book).first()
             if not lending:
                 raise ValidationError(f"「{book.title}」の有効な貸出レコードが見つかりません。")
 
@@ -207,17 +207,17 @@ class ReservationQuerySet(BaseQuerySet):
     予約データの検索を便利にするカスタムQuerySet
     """
 
-    def active(self):
-        """プロジェクト標準の有効フラグに加え、有効な（入荷待ち、または準備完了）予約を返す"""
-        return super().active().filter(status__in=[1, 2])  # 1: WAITING, 2: READY
+    def ongoing(self):
+        """有効な（入荷待ち、または準備完了）予約を返す"""
+        return self.active().filter(status__in=[1, 2])  # 1: WAITING, 2: READY
 
     def waiting(self):
         """入荷待ちの予約のみを返す"""
-        return self.active().filter(status=1)
+        return self.ongoing().filter(status=1)
 
     def expired(self):
         """取置期限を過ぎている準備完了状態の予約を返す"""
-        return self.active().filter(status=2, reserved_until__lt=timezone.now().date())
+        return self.ongoing().filter(status=2, reserved_until__lt=timezone.now().date())
 
 
 class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
@@ -233,11 +233,11 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
             # 1. バリデーション：既に同じ書誌を借りていないか
             from .models import Lending
 
-            if Lending.objects.active().filter(user=user, book__biblio=biblio).exists():
+            if Lending.objects.ongoing().filter(user=user, book__biblio=biblio).exists():
                 raise ValidationError("現在貸出中の書籍を予約することはできません。")
 
             # 2. バリデーション：既に有効な予約を持っていないか
-            if self.active().filter(user=user, biblio=biblio).exists():
+            if self.ongoing().filter(user=user, biblio=biblio).exists():
                 raise ValidationError("既にこの本に有効な予約が入っています。")
 
             # 予約作成
@@ -339,13 +339,13 @@ class Reservation(BaseModel):
         # 1. 既に同じ本を借りている場合は予約できない
         from .models import Lending
 
-        if Lending.objects.active().filter(user=self.user, book__biblio=self.biblio).exists():
+        if Lending.objects.ongoing().filter(user=self.user, book__biblio=self.biblio).exists():
             raise ValidationError("現在貸出中の書籍を予約することはできません。")
 
         # 2. 重複予約のチェック（既に「待ち」または「準備完了」の予約があるか）
         if self.status == self.Status.WAITING:
             duplicate = (
-                self.__class__.objects.active().filter(user=self.user, biblio=self.biblio).exclude(pk=self.pk).exists()
+                self.__class__.objects.ongoing().filter(user=self.user, biblio=self.biblio).exclude(pk=self.pk).exists()
             )
             if duplicate:
                 raise ValidationError("既にこの本に有効な予約が入っています。")
