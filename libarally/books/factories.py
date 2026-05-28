@@ -1,7 +1,8 @@
 import factory
 from factory.django import DjangoModelFactory
 
-from .models import Biblio, Book, Category, Floor, Shelf
+from accounts.factories import UserFactory
+from .models import Biblio, Book, Category, Favorite, Floor, Shelf
 
 
 class FloorFactory(DjangoModelFactory):
@@ -45,3 +46,11 @@ class BookFactory(DjangoModelFactory):
     shelf = factory.SubFactory(ShelfFactory)
     status = Book.Status.AVAILABLE
     # count は save メソッドで自動採番されるため、あえて指定しない
+
+
+class FavoriteFactory(DjangoModelFactory):
+    class Meta:
+        model = Favorite
+
+    user = factory.SubFactory(UserFactory)
+    biblio = factory.SubFactory(BiblioFactory)

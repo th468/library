@@ -7,6 +7,7 @@ from ..factories import (
     BiblioFactory,
     BookFactory,
     CategoryFactory,
+    FavoriteFactory,
     FloorFactory,
     ShelfFactory,
 )
@@ -28,7 +29,7 @@ class BiblioModelTest(TestCase, BaseModelTestMixin):
     factory_class = BiblioFactory
 
     def run_str_test(self):
-        """__str__ の独自形式を検証"""
+        """__str__ の独自形式（【書誌】）を検証"""
         biblio = BiblioFactory(title="テスト本")
         self.assertIn("【書誌】", str(biblio))
         self.assertIn("テスト本", str(biblio))
@@ -132,6 +133,23 @@ class BookModelTest(TestCase, BaseModelTestMixin):
         book_maint = BookFactory(status=model_class.Status.MAINTENANCE)
         self.assertFalse(book_maint.can_be_lent)
 
+        # 異常系: 紛失
+        book_lost = BookFactory(status=model_class.Status.LOST)
+        self.assertFalse(book_lost.can_be_lent)
+
+    def test_can_be_reserved_logic(self):
+        """正常系 → 異常系: statusに応じたcan_be_reservedの挙動テスト"""
+        model_class = self.factory_class._meta.model
+
+        # 正常系: 在庫あり・貸出中・予約中は予約対象
+        self.assertTrue(BookFactory(status=model_class.Status.AVAILABLE).can_be_reserved)
+        self.assertTrue(BookFactory(status=model_class.Status.LENT).can_be_reserved)
+        self.assertTrue(BookFactory(status=model_class.Status.RESERVED).can_be_reserved)
+
+        # 異常系: メンテナンス中・紛失は予約対象外
+        self.assertFalse(BookFactory(status=model_class.Status.MAINTENANCE).can_be_reserved)
+        self.assertFalse(BookFactory(status=model_class.Status.LOST).can_be_reserved)
+
     def test_save_auto_increment_count(self):
         """saveメソッドによるcountの自動採番テスト"""
         biblio = BiblioFactory()
@@ -167,3 +185,26 @@ class ShelfModelTest(TestCase, BaseModelTestMixin):
         shelf.floor = None
         with self.assertRaises(ValidationError):
             shelf.full_clean()
+
+
+class FavoriteModelTest(TestCase, BaseModelTestMixin):
+    """
+    Favoriteモデルのテスト
+    """
+
+    factory_class = FavoriteFactory
+
+    def run_str_test(self):
+        """__str__ の独自形式（【お気に入り】）を検証"""
+        favorite = FavoriteFactory()
+        display_str = str(favorite)
+        self.assertIn("【お気に入り】", display_str)
+        self.assertIn(favorite.user.email, display_str)
+
+    def test_unique_constraint(self):
+        """同一ユーザーによる同一書誌の重複登録を阻止できるか"""
+        favorite = FavoriteFactory()
+        # 同じ組み合わせで作成を試みる
+        duplicate = FavoriteFactory.build(user=favorite.user, biblio=favorite.biblio)
+        with self.assertRaises(ValidationError):
+            duplicate.full_clean()

@@ -17,9 +17,26 @@ class LendingQuerySet(BaseQuerySet):
         """現在貸出中のもの（返却されていないもの）を返す"""
         return self.filter(return_date__isnull=True)
 
+    def returned(self):
+        """返却済みのものを返す"""
+        return self.filter(return_date__isnull=False)
+
+    def for_user(self, user):
+        """特定のユーザーの貸出に絞り込む"""
+        return self.filter(user=user)
+
+    def for_biblio(self, biblio):
+        """特定の書誌に対する貸出で絞り込む"""
+        return self.filter(book__biblio=biblio)
+
     def overdue(self):
         """期限を過ぎている貸出データを返す"""
         return self.ongoing().filter(due_date__lt=timezone.now().date())
+
+    def expiring_soon(self, days=3):
+        """期限が近い（days日以内）貸出データを返す"""
+        threshold = timezone.now().date() + timezone.timedelta(days=days)
+        return self.ongoing().filter(due_date__lte=threshold)
 
 
 # 貸出情報用Manager
@@ -51,7 +68,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
             from .models import Reservation
 
             # その本が「準備完了」かつ「予約者が自分以外」ならエラー
-            res = Reservation.objects.ongoing().filter(book=target_book, status=Reservation.Status.READY).first()
+            res = Reservation.objects.ready_for_pickup().filter(book=target_book).first()
             if res and res.user != user:
                 raise ValidationError("この本は現在、他の予約者のために取り置き中です。")
 
@@ -91,18 +108,13 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
             # 予約の引き当て
             from .models import Reservation
 
-            next_res = Reservation.objects.waiting().filter(biblio=book.biblio).first()
-
-            if next_res:
-                # 予約がある場合：準備完了へ
-                Reservation.objects.mark_as_ready(next_res, book)
-                book.status = book.Status.RESERVED
-            else:
-                # 予約がない場合：通常通り利用可能へ
+            if not Reservation.objects.mark_as_ready(book):
+                # 予約がない場合のみ、在庫ありに戻して保存する
                 book.status = book.Status.AVAILABLE
+                book.save(update_fields=["status", "updated_at"])
 
-            book.save(update_fields=["status", "updated_at"])
             return lending
+
 
     # 貸出期間延長機能
     def renew(self, lending, user, days=14):
@@ -215,6 +227,18 @@ class ReservationQuerySet(BaseQuerySet):
         """入荷待ちの予約のみを返す"""
         return self.ongoing().filter(status=1)
 
+    def ready_for_pickup(self):
+        """準備完了（取置中）の予約のみを返す"""
+        return self.ongoing().filter(status=2)
+
+    def for_user(self, user):
+        """特定のユーザーの予約に絞り込む"""
+        return self.filter(user=user)
+
+    def for_biblio(self, biblio):
+        """特定の書誌に対する予約で絞り込む"""
+        return self.filter(biblio=biblio)
+
     def expired(self):
         """取置期限を過ぎている準備完了状態の予約を返す"""
         return self.ongoing().filter(status=2, reserved_until__lt=timezone.now().date())
@@ -224,6 +248,14 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
     """
     予約ロジックを管理するマネージャー
     """
+
+    def has_waiting_for(self, biblio):
+        """特定の書誌に待機者がいるか（高速判定）"""
+        return self.waiting().for_biblio(biblio).exists()
+
+    def get_next_waiting_for(self, biblio):
+        """特定の書誌を待っている最優先の予約者を1人取得"""
+        return self.waiting().for_biblio(biblio).first()
 
     def create_reservation(self, user, biblio):
         """
@@ -240,49 +272,87 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
             if self.ongoing().filter(user=user, biblio=biblio).exists():
                 raise ValidationError("既にこの本に有効な予約が入っています。")
 
-            # 予約作成
+            # 3. 予約データの作成（一旦 WAITING で作成・保存）
             reservation = self.model(user=user, biblio=biblio, status=1)  # WAITING
             reservation.full_clean()
             reservation.save()
+
+            # 4. 在庫チェックと引き当ての委譲
+            from books.models import Book
+
+            available_book = (
+                Book.objects.filter(biblio=biblio, status=Book.Status.AVAILABLE).select_for_update().first()
+            )
+
+            if available_book:
+                # 共通メソッドを呼び出し。内部で自身の予約が最優先として選ばれる。
+                self.mark_as_ready(available_book)
+                # 自身の状態が更新された（READYになった）ことを反映
+                reservation.refresh_from_db()
+
             return reservation
 
-    def mark_as_ready(self, reservation, book):
+
+    def mark_as_ready(self, book):
         """
-        本が返却された際などに、予約を「準備完了（取置中）」にする
+        指定された本を、待機中の最優先予約者に引き当てる。
+        引き当てに成功したら True, 待機者がいなければ False を返す。
         """
+        # ショートカットメソッドを使用して意図を明確化
+        if not self.has_waiting_for(book.biblio):
+            return False
+
         with transaction.atomic():
-            # 書籍をロック
             from books.models import Book
 
             target_book = Book.objects.select_for_update().get(pk=book.pk)
 
-            # settings.pyから取置期間を取得（デフォルト7日）
+            # ロック後に再度、最新の状態で待機者を特定
+            target_res = self.get_next_waiting_for(target_book.biblio)
+
+            if not target_res:
+                return False
+
+            # 本と予約の状態を更新
+            target_book.status = Book.Status.RESERVED
+            target_book.save(update_fields=["status", "updated_at"])
+
             period_days = getattr(settings, "RESERVATION_PERIOD_DAYS", 7)
+            target_res.status = 2  # READY
+            target_res.book = target_book
+            target_res.reserved_until = timezone.now().date() + timezone.timedelta(days=period_days)
+            target_res.save(update_fields=["status", "book", "reserved_until", "updated_at"])
 
-            reservation.status = 2  # READY
-            reservation.book = target_book
-            reservation.reserved_until = timezone.now().date() + timezone.timedelta(days=period_days)
-
-            reservation.save(update_fields=["status", "book", "reserved_until", "updated_at"])
-            return reservation
+            return True
 
     def complete_reservation(self, reservation):
         """
         予約者が実際に本を借りた際、予約を完了状態にする
         """
         reservation.status = 3  # COMPLETED
-        reservation.is_active = False
-        reservation.save(update_fields=["status", "is_active", "updated_at"])
+        reservation.save(update_fields=["status", "updated_at"])
 
     def cancel_reservation(self, reservation, remark=None):
         """
-        予約をキャンセルする
+        予約をキャンセルする。もし READY 状態だった場合は本を解放する。
         """
-        reservation.status = 4  # CANCELED
-        reservation.is_active = False
-        if remark:
-            reservation.remarks = (reservation.remarks or "") + f"\n[キャンセル理由: {remark}]"
-        reservation.save(update_fields=["status", "is_active", "remarks", "updated_at"])
+        with transaction.atomic():
+            was_ready = reservation.status == 2  # READY
+            target_book = reservation.book
+
+            reservation.status = 4  # CANCELED
+            if remark:
+                reservation.remarks = (reservation.remarks or "") + f"\n[キャンセル理由: {remark}]"
+            reservation.save(update_fields=["status", "remarks", "updated_at"])
+
+            # もし「準備完了（取置中）」だった場合は、本を解放して次の予約者へ
+            if was_ready and target_book:
+                if not self.mark_as_ready(target_book):
+                    # 次の予約者がいない場合のみ、在庫ありに戻す
+                    from books.models import Book
+
+                    target_book.status = Book.Status.AVAILABLE
+                    target_book.save(update_fields=["status", "updated_at"])
 
 
 # endregion

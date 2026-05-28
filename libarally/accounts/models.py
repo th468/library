@@ -73,8 +73,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def active_lending_count(self):
         """現在の貸出中件数を返す"""
-        # 循環参照を避けるためメソッド内でインポート
-        return self.lending_set.filter(return_date__isnull=True).count()
+        return self.lending_set.ongoing().count()
 
     @property
     def can_lend(self):
@@ -84,7 +83,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def has_overdue_loans(self):
         """このユーザーに1件でも延滞があるか"""
-        # LendingのManager経由でQuerySetのoverdue()を呼び出す
         return self.lending_set.overdue().exists()
 
     @property
@@ -101,7 +99,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def lending_history(self):
         """自身の過去の貸出履歴（返却済みのもの、新しい順）"""
         return (
-            self.lending_set.filter(return_date__isnull=False)
+            self.lending_set.returned()
             .select_related("book__biblio")
             .order_by("-return_date")
         )

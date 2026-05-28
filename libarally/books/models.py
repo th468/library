@@ -65,8 +65,9 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
     class Status(models.IntegerChoices):
         AVAILABLE = 1, "在庫あり"
         LENT = 2, "貸出中"
-        RESERVED = 3, "取り置き中"
+        RESERVED = 3, "予約中"
         MAINTENANCE = 4, "メンテナンス中"
+        LOST = 5, "紛失"
 
     biblio = models.ForeignKey(
         "Biblio",
@@ -102,6 +103,11 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
     def can_be_lent(self):
         return self.status == self.Status.AVAILABLE
 
+    @property
+    def can_be_reserved(self):
+        """予約対象になり得るか（紛失等を除外）"""
+        return self.status in [self.Status.AVAILABLE, self.Status.LENT, self.Status.RESERVED]
+
     def save(self, *args, **kwargs):
         if not self.pk:
             with transaction.atomic():
@@ -132,3 +138,18 @@ class Floor(BaseModel):
 
     class Meta:
         verbose_name_plural = "階情報"
+
+
+class Favorite(BaseModel):
+    """ユーザーと書誌を紐付けるお気に入りモデル"""
+
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, verbose_name="ユーザー")
+    biblio = models.ForeignKey(Biblio, on_delete=models.CASCADE, verbose_name="お気に入り書誌")
+
+    class Meta:
+        verbose_name = "お気に入り"
+        verbose_name_plural = "お気に入り"
+        unique_together = ("user", "biblio")
+
+    def __str__(self):
+        return f"【お気に入り】{self.user.email} - {self.biblio.title}"

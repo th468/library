@@ -43,7 +43,7 @@ class ReserveActionView(LoginRequiredMixin, View):
 class CollectActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
         # テンプレートからは Book ID が渡されるため、その本のアクティブな貸出を探す
-        lending = get_object_or_404(Lending, book__pk=pk, user=request.user, return_date__isnull=True)
+        lending = get_object_or_404(Lending.objects.ongoing(), book__pk=pk, user=request.user)
         try:
             Lending.objects.collect(lending, request.user)
             messages.success(request, "返却が完了しました。")
@@ -56,10 +56,25 @@ class CollectActionView(LoginRequiredMixin, View):
 class RenewActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
         # テンプレートからは Book ID が渡されることを想定し、その本のアクティブな貸出を探す
-        lending = get_object_or_404(Lending, book__pk=pk, user=request.user, return_date__isnull=True)
+        lending = get_object_or_404(Lending.objects.ongoing(), book__pk=pk, user=request.user)
         try:
             Lending.objects.renew(lending, request.user)
             messages.success(request, "貸出期間を延長しました。")
         except ValidationError as e:
             messages.error(request, e.message)
+        return redirect("dashboard:index")
+
+
+# 予約キャンセル実行
+class ReservationCancelActionView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        from .models import Reservation
+
+        reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
+        try:
+            Reservation.objects.cancel_reservation(reservation, remark="ユーザーによるキャンセル")
+            messages.success(request, f"「{reservation.biblio.title}」の予約を取り消しました。")
+        except ValidationError as e:
+            messages.error(request, e.message)
+
         return redirect("dashboard:index")
