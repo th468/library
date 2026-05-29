@@ -21,14 +21,6 @@ class LendingQuerySet(BaseQuerySet):
         """返却済みのものを返す"""
         return self.filter(return_date__isnull=False)
 
-    def for_user(self, user):
-        """特定のユーザーの貸出に絞り込む"""
-        return self.filter(user=user)
-
-    def for_biblio(self, biblio):
-        """特定の書誌に対する貸出で絞り込む"""
-        return self.filter(book__biblio=biblio)
-
     def overdue(self):
         """期限を過ぎている貸出データを返す"""
         return self.ongoing().filter(due_date__lt=timezone.now().date())
@@ -201,8 +193,8 @@ class Lending(BaseModel):
             return
         # 1. 新規登録時のみのチェック（self.pk がない ＝ まだ保存されていない）
         if not self.pk:
-            # 蔵書の状態チェック
-            if self.book.status != self.book.Status.AVAILABLE:
+            # 蔵書の状態チェック（在庫あり、または予約中の場合のみ貸出可能）
+            if self.book.status not in [self.book.Status.AVAILABLE, self.book.Status.RESERVED]:
                 raise ValidationError("この本は現在ご利用いただけません。")
 
             # ユーザーの上限チェック
@@ -235,13 +227,13 @@ class ReservationQuerySet(BaseQuerySet):
         """準備完了（取置中）の予約のみを返す"""
         return self.ongoing().filter(status=2)
 
-    def for_user(self, user):
-        """特定のユーザーの予約に絞り込む"""
-        return self.filter(user=user)
+    def has_waiting_for(self, biblio):
+        """特定の書誌に待機者がいるか（高速判定）"""
+        return self.waiting().filter(biblio=biblio).exists()
 
-    def for_biblio(self, biblio):
-        """特定の書誌に対する予約で絞り込む"""
-        return self.filter(biblio=biblio)
+    def get_next_waiting_for(self, biblio):
+        """特定の書誌を待っている最優先の予約者を1人取得"""
+        return self.waiting().filter(biblio=biblio).first()
 
     def expired(self):
         """取置期限を過ぎている準備完了状態の予約を返す"""
@@ -252,14 +244,6 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
     """
     予約ロジックを管理するマネージャー
     """
-
-    def has_waiting_for(self, biblio):
-        """特定の書誌に待機者がいるか（高速判定）"""
-        return self.waiting().for_biblio(biblio).exists()
-
-    def get_next_waiting_for(self, biblio):
-        """特定の書誌を待っている最優先の予約者を1人取得"""
-        return self.waiting().for_biblio(biblio).first()
 
     def handle_expired_reservations(self):
         """
