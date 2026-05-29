@@ -27,6 +27,20 @@ class LendingManagerTest(TestCase):
         self.book.refresh_from_db()
         self.assertEqual(self.book.status, 2)  # LENT
 
+    def test_lend_completes_own_reservation(self):
+        """lend: 予約していた本を借りた際、予約が自動的に完了（COMPLETED）になるか"""
+        # 1. 準備完了状態の予約を作成
+        res = Reservation.objects.create_reservation(self.user, self.biblio)
+        self.assertEqual(res.status, 2)  # READY
+        self.assertEqual(res.book, self.book)
+
+        # 2. 貸出実行
+        Lending.objects.lend(self.book, self.user)
+
+        # 3. 予約が完了しているか検証
+        res.refresh_from_db()
+        self.assertEqual(res.status, 3)  # COMPLETED
+
     def test_collect_success_no_reservation(self):
         """collect: 予約がない場合、返却後に書籍がAVAILABLEに戻るか"""
         lending = Lending.objects.lend(self.book, self.user)
@@ -127,6 +141,25 @@ class ReservationManagerTest(TestCase):
         # 予約がWAITING(1)になっているか
         self.assertEqual(res.status, 1)
         self.assertIsNone(res.book)
+
+    def test_handle_expired_reservations(self):
+        """handle_expired_reservations: 期限切れの予約が正しくキャンセルされ、本が解放されるか"""
+        # 1. 期限切れの準備完了予約を作成
+        book = BookFactory(biblio=self.biblio, status=1)
+        res = Reservation.objects.create_reservation(self.user, self.biblio)
+        res.reserved_until = timezone.now().date() - timezone.timedelta(days=1)
+        res.save()
+
+        # 2. 期限切れ処理を実行
+        count = Reservation.objects.handle_expired_reservations()
+        self.assertEqual(count, 1)
+
+        # 3. 検証
+        res.refresh_from_db()
+        self.assertEqual(res.status, 4)  # CANCELED
+        
+        book.refresh_from_db()
+        self.assertEqual(book.status, 1)  # AVAILABLE (次予約者がいないため)
 
     def test_create_reservation_fail_already_borrowing(self):
         """create_reservation: 貸出中の本は予約できないか"""

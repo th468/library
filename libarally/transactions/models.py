@@ -69,8 +69,12 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
 
             # その本が「準備完了」かつ「予約者が自分以外」ならエラー
             res = Reservation.objects.ready_for_pickup().filter(book=target_book).first()
-            if res and res.user != user:
-                raise ValidationError("この本は現在、他の予約者のために取り置き中です。")
+            if res:
+                if res.user != user:
+                    raise ValidationError("この本は現在、他の予約者のために取り置き中です。")
+                else:
+                    # 自分自身が予約者の場合は、貸出実行前に予約を消化（完了）させる
+                    Reservation.objects.complete_reservation(res)
 
             # 貸出期限を計算
             calculated_due_date = timezone.now().date() + timezone.timedelta(days=user.lending_period_days)
@@ -257,6 +261,18 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
         """特定の書誌を待っている最優先の予約者を1人取得"""
         return self.waiting().for_biblio(biblio).first()
 
+    def handle_expired_reservations(self):
+        """
+        期限切れの予約（取置期限を過ぎたもの）を一括でキャンセル処理する。
+        引き当てられていた本は、自動的に次の予約者へ回るか、在庫に戻ります。
+        """
+        expired_res_list = self.expired()
+        count = 0
+        for res in expired_res_list:
+            self.cancel_reservation(res, remark="取置期限切れによる自動キャンセル")
+            count += 1
+        return count
+
     def create_reservation(self, user, biblio):
         """
         予約を新規作成する
@@ -325,12 +341,23 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
 
             return True
 
-    def complete_reservation(self, reservation):
+    def complete_reservation(self, reservation, lent_book=None):
         """
-        予約者が実際に本を借りた際、予約を完了状態にする
+        予約者が実際に本を借りた際、予約を完了状態にする。
+        もし確保していた本と実際に借りた本が異なる場合、確保していた本を解放します。
         """
-        reservation.status = 3  # COMPLETED
-        reservation.save(update_fields=["status", "updated_at"])
+        with transaction.atomic():
+            # もし「別の本」を取り置いていた場合は、その本を解放して次の人へ回す
+            if reservation.status == 2 and reservation.book and reservation.book != lent_book:
+                old_book = reservation.book
+                if not self.mark_as_ready(old_book):
+                    from books.models import Book
+
+                    old_book.status = Book.Status.AVAILABLE
+                    old_book.save(update_fields=["status", "updated_at"])
+
+            reservation.status = 3  # COMPLETED
+            reservation.save(update_fields=["status", "updated_at"])
 
     def cancel_reservation(self, reservation, remark=None):
         """
