@@ -17,7 +17,7 @@ from .models import Biblio, Book, Favorite, Floor, Shelf
 # #蔵書検索一覧
 class BiblioSearchListView(PageTitleMixin, SearchMixin, ListView):
     model = Biblio
-    template_name = "books/book_list.html"
+    template_name = "catalog/book_list.html"
     context_object_name = "biblios"
     paginate_by = 12
     page_title = "蔵書をさがす"
@@ -38,7 +38,7 @@ class BiblioSearchListView(PageTitleMixin, SearchMixin, ListView):
 # #蔵書詳細
 class BiblioDetailView(LoginRequiredMixin, PageTitleMixin, DetailView):
     model = Biblio
-    template_name = "books/book_detail.html"
+    template_name = "catalog/book_detail.html"
     context_object_name = "biblio"
     page_title = "書籍詳細"
 
@@ -80,7 +80,7 @@ class ManageIndexView(StaffManagerMixin, PageTitleMixin, TemplateView):
     管理者用ポータル画面
     ここから Django Admin や、将来的な高度な統計画面へ誘導する
     """
-    template_name = "books/manage_index.html"
+    template_name = "catalog/manage_index.html"
     page_title = "管理業務メニュー"
 
 # endregion

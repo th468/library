@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, TemplateView
-from books.models import Biblio
+from catalog.models import Biblio
 from transactions.models import Lending
 from core.views.mixins import PageTitleMixin
 

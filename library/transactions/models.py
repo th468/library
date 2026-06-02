@@ -42,7 +42,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
         target_lending = self.select_for_update().get(pk=lending_pk)
 
         # 2. 次に紐づくBookをロック
-        from books.models import Book
+        from catalog.models import Book
 
         target_book = Book.objects.select_for_update().get(pk=target_lending.book_id)
 
@@ -52,7 +52,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
     def lend(self, book, user):
         # トランザクション開始、対象の書籍をロック
         with transaction.atomic():
-            from books.models import Book
+            from catalog.models import Book
 
             target_book = Book.objects.select_for_update().get(pk=book.pk)
 
@@ -159,7 +159,7 @@ class Lending(BaseModel):
         OTHER = 3, "その他、備考にて記入"
 
     user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, verbose_name="利用者")
-    book = models.ForeignKey("books.Book", on_delete=models.PROTECT, verbose_name="書籍")
+    book = models.ForeignKey("catalog.Book", on_delete=models.PROTECT, verbose_name="書籍")
     due_date = models.DateField("返却期限")
     return_date = models.DateField("返却日", null=True, blank=True)
     status = models.IntegerField("状況", choices=Status.choices, default=Status.LENDING, db_index=True)
@@ -278,7 +278,7 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
             reservation.save()
 
             # 4. 在庫チェックと引き当ての委譲
-            from books.models import Book
+            from catalog.models import Book
 
             available_book = (
                 Book.objects.filter(biblio=biblio, status=Book.Status.AVAILABLE).select_for_update().first()
@@ -303,7 +303,7 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
             return False
 
         with transaction.atomic():
-            from books.models import Book
+            from catalog.models import Book
 
             target_book = Book.objects.select_for_update().get(pk=book.pk)
 
@@ -335,7 +335,7 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
             if reservation.status == 2 and reservation.book and reservation.book != lent_book:
                 old_book = reservation.book
                 if not self.mark_as_ready(old_book):
-                    from books.models import Book
+                    from catalog.models import Book
 
                     old_book.status = Book.Status.AVAILABLE
                     old_book.save(update_fields=["status", "updated_at"])
@@ -360,7 +360,7 @@ class ReservationManager(BaseManager.from_queryset(ReservationQuerySet)):
             if was_ready and target_book:
                 if not self.mark_as_ready(target_book):
                     # 次の予約者がいない場合のみ、在庫ありに戻す
-                    from books.models import Book
+                    from catalog.models import Book
 
                     target_book.status = Book.Status.AVAILABLE
                     target_book.save(update_fields=["status", "updated_at"])
@@ -384,13 +384,13 @@ class Reservation(BaseModel):
         verbose_name="利用者",
     )
     biblio = models.ForeignKey(
-        "books.Biblio",
+        "catalog.Biblio",
         on_delete=models.PROTECT,
         verbose_name="予約書誌",
     )
     # 予約時点では特定の「本（個体）」は決まっていないため、null=Trueとする
     book = models.ForeignKey(
-        "books.Book",
+        "catalog.Book",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

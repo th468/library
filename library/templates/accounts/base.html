@@ -16,10 +16,10 @@
                 <a href="{% url 'accounts:logout' %}">ログアウト</a>
                 {% endif %}
                 <a href="{% url 'accounts:info' %}">ユーザー画面</a>
-                <a href="{% url 'books:booklist' %}">書籍一覧</a>
-                <a href="{% url 'books:biblio_list' %}">書誌情報一覧</a>
+                <a href="{% url 'catalog:booklist' %}">書籍一覧</a>
+                <a href="{% url 'catalog:biblio_list' %}">書誌情報一覧</a>
                 {% if user.is_staff %}
-                <a href="{% url 'books:manageindex' %}">管理画面</a>
+                <a href="{% url 'catalog:manageindex' %}">管理画面</a>
                 {% endif %}
                 
             </nav>

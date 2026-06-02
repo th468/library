@@ -22,7 +22,7 @@ class Biblio(BaseModel):
     publisher = models.CharField(max_length=255, verbose_name="出版社")
     published_date = models.CharField(max_length=50, null=True, blank=True, verbose_name="出版日")
     description = models.TextField(null=True, blank=True, verbose_name="内容紹介")
-    cover = models.ImageField("書影", upload_to="books/covers/", null=True, blank=True)
+    cover = models.ImageField("書影", upload_to="catalog/covers/", null=True, blank=True)
 
     # カテゴリとの多対多リレーション
     categories = models.ManyToManyField(Category, blank=True, related_name="biblios", verbose_name="カテゴリ")
@@ -33,7 +33,7 @@ class Biblio(BaseModel):
         return super().__str__()
 
     def get_absolute_url(self):
-        return reverse("books:bookdetail", kwargs={"pk": self.pk})
+        return reverse("catalog:bookdetail", kwargs={"pk": self.pk})
 
     @property
     def total_count(self):
@@ -97,7 +97,7 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
         return super().__str__()
 
     # def get_absolute_url(self):
-    #     return reverse("books:bookdetail", kwargs={"pk": self.pk})
+    #     return reverse("catalog:bookdetail", kwargs={"pk": self.pk})
 
     @property
     def can_be_lent(self):
@@ -125,7 +125,7 @@ class Shelf(BaseModel):
     name = models.CharField(max_length=255)
     floor = models.ForeignKey("Floor", on_delete=models.PROTECT, related_name="shelf")
     description = models.TextField("場所の詳細説明", null=True, blank=True, help_text="例：南側自動販売機の横、など")
-    location_photo = models.ImageField("配置写真", upload_to="books/shelves/", null=True, blank=True)
+    location_photo = models.ImageField("配置写真", upload_to="catalog/shelves/", null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "本棚情報"
@@ -134,7 +134,7 @@ class Shelf(BaseModel):
 # 階情報のモデル
 class Floor(BaseModel):
     name = models.CharField(max_length=255)
-    map = models.ImageField("フロアマップ", upload_to="books/maps/", null=True, blank=True)
+    map = models.ImageField("フロアマップ", upload_to="catalog/maps/", null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "階情報"

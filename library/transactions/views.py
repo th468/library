@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views import View
 
-from books.models import Biblio, Book
+from catalog.models import Biblio, Book
 from .models import Lending, Reservation
 
 
@@ -21,7 +21,7 @@ class LendActionView(LoginRequiredMixin, View):
             messages.error(request, e.message)
 
         # Book ID ではなく Biblio ID でリダイレクト
-        return redirect(reverse("books:bookdetail", kwargs={"pk": book.biblio.pk}))
+        return redirect(reverse("catalog:bookdetail", kwargs={"pk": book.biblio.pk}))
 
 
 # 予約実行
@@ -36,7 +36,7 @@ class ReserveActionView(LoginRequiredMixin, View):
             messages.error(request, e.message)
 
         # Book ID ではなく Biblio ID でリダイレクト
-        return redirect(reverse("books:bookdetail", kwargs={"pk": book.biblio.pk}))
+        return redirect(reverse("catalog:bookdetail", kwargs={"pk": book.biblio.pk}))
 
 
 # 返却実行

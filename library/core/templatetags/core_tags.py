@@ -1,6 +1,6 @@
 from django import template
 from django.urls import reverse, NoReverseMatch
-from books.models import Category
+from catalog.models import Category
 
 register = template.Library()
 
@@ -58,7 +58,7 @@ def render_breadcrumbs(context):
     
     # URL セグメントと日本語ラベルのマッピング
     label_map = {
-        'books': '蔵書をさがす',
+        'catalog': '蔵書をさがす',
         'list': '検索結果',
         'detail': '書籍詳細',
         'dashboard': 'マイページ',
@@ -122,7 +122,7 @@ def is_lent_by(obj, user):
     """
     if not user or not user.is_authenticated:
         return False
-    from books.models import Biblio, Book
+    from catalog.models import Biblio, Book
     from transactions.models import Lending
 
     if isinstance(obj, Biblio):
@@ -164,5 +164,5 @@ def is_favorited_by(biblio, user):
     """ユーザーがその書誌をお気に入り登録しているか判定"""
     if not user or not user.is_authenticated:
         return False
-    from books.models import Favorite
+    from catalog.models import Favorite
     return Favorite.objects.filter(biblio=biblio, user=user).exists()

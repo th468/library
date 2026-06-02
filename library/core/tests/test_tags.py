@@ -1,7 +1,7 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.auth import get_user_model
 from core.templatetags.core_tags import render_breadcrumbs, is_lent_by, is_reserved_by
-from books.factories import BiblioFactory, BookFactory, ShelfFactory, FloorFactory
+from catalog.factories import BiblioFactory, BookFactory, ShelfFactory, FloorFactory
 from transactions.models import Lending, Reservation
 
 User = get_user_model()
@@ -21,14 +21,14 @@ class CoreTagsTest(TestCase):
     def test_render_breadcrumbs_logic(self):
         """URLパスから日本語ラベル付きのパンくずが正しく生成されるか"""
         # 1. 検索一覧パス
-        request = self.factory.get('/books/list/')
+        request = self.factory.get('/catalog/list/')
         context = {'request': request}
         result = render_breadcrumbs(context)
         self.assertEqual(result['links'][0]['label'], '蔵書をさがす')
         self.assertEqual(result['links'][1]['label'], '検索結果')
 
         # 2. 詳細パス（数値IDを含む）
-        request = self.factory.get('/books/detail/1/')
+        request = self.factory.get('/catalog/detail/1/')
         context = {'request': request}
         result = render_breadcrumbs(context)
         self.assertEqual(result['links'][1]['label'], '書籍詳細')

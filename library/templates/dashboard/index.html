@@ -34,7 +34,7 @@
                             <div class="d-flex gap-2 align-items-center">
                                 {# アクションボタンコンポーネントを適用 #}
                                 {% include "common/includes/_action_buttons.html" with book=lending.book user=user %}
-                                <a href="{% url 'books:bookdetail' lending.book.biblio.pk %}" class="btn btn-sm btn-outline-primary px-3 rounded-pill">詳細</a>
+                                <a href="{% url 'catalog:bookdetail' lending.book.biblio.pk %}" class="btn btn-sm btn-outline-primary px-3 rounded-pill">詳細</a>
                             </div>
                         </div>
                     </div>
@@ -72,7 +72,7 @@
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-link x-small text-danger p-0 text-decoration-none">取消</button>
                                     </form>
-                                    <a href="{% url 'books:bookdetail' res.biblio.pk %}" class="x-small text-decoration-none">詳細へ</a>
+                                    <a href="{% url 'catalog:bookdetail' res.biblio.pk %}" class="x-small text-decoration-none">詳細へ</a>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +116,7 @@
                                 <td class="fw-bold text-dark">{{ history.book.biblio.title }}</td>
                                 <td class="small">{{ history.book.biblio.author }}</td>
                                 <td class="text-center">
-                                    <a href="{% url 'books:bookdetail' history.book.biblio.pk %}" class="btn btn-sm btn-link text-decoration-none">もう一度借りる</a>
+                                    <a href="{% url 'catalog:bookdetail' history.book.biblio.pk %}" class="btn btn-sm btn-link text-decoration-none">もう一度借りる</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -148,7 +148,7 @@
     <div class="col-12">
         <div class="card border-0 bg-light py-5 text-center shadow-sm">
             <p class="text-muted mb-0">お気に入り登録した本はありません。</p>
-            <a href="{% url 'books:booklist' %}" class="small text-decoration-none mt-2">本を探しにいく</a>
+            <a href="{% url 'catalog:booklist' %}" class="small text-decoration-none mt-2">本を探しにいく</a>
         </div>
     </div>
     {% endif %}
@@ -159,7 +159,7 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="h5 mb-0 text-primary">最近追加された本</h3>
-            <a href="{% url 'books:booklist' %}" class="small text-decoration-none">すべて見る &raquo;</a>
+            <a href="{% url 'catalog:booklist' %}" class="small text-decoration-none">すべて見る &raquo;</a>
         </div>
     </div>
     <div class="row row-cols-2 row-cols-md-5 g-4">

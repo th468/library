@@ -6,7 +6,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.db import connection
-from books.models import Book, Biblio, Category, Floor, Shelf
+from catalog.models import Book, Biblio, Category, Floor, Shelf
 from transactions.models import Lending, Reservation
 from accounts.models import User
 
@@ -67,7 +67,7 @@ def clean_and_seed():
         )
 
     print(f"\n=== 完了しました！ ===")
-    print(f"Books: {Book.objects.count()}, Biblios: {Biblio.objects.count()}")
+    print(f"catalog: {Book.objects.count()}, Biblios: {Biblio.objects.count()}")
     print(f"ログイン: admin@example.com / password123")
 
 if __name__ == "__main__":

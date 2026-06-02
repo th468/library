@@ -27,7 +27,7 @@
         </div>
 
         <div class="d-grid gap-2">
-            <a href="{% url 'books:booklist' %}" class="btn btn-outline-secondary rounded-pill">
+            <a href="{% url 'catalog:booklist' %}" class="btn btn-outline-secondary rounded-pill">
                 <i class="bi bi-arrow-left"></i> 検索結果に戻る
             </a>
         </div>
@@ -39,7 +39,7 @@
             <div class="d-flex justify-content-between align-items-start">
                 <h1 class="display-6 fw-bold text-dark mb-1">{{ biblio.title }}</h1>
                 {% if user.is_authenticated %}
-                <form action="{% url 'books:favorite_toggle' biblio.pk %}" method="post">
+                <form action="{% url 'catalog:favorite_toggle' biblio.pk %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger rounded-pill px-3 d-flex align-items-center gap-2">
                         {% if biblio|is_favorited_by:user %}

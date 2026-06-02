@@ -107,8 +107,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def favorite_biblios(self):
         """自身がお気に入り登録した書誌一覧を取得"""
-        from books.models import Biblio
+        from catalog.models import Biblio
         return Biblio.objects.filter(favorite__user=self).order_by("-favorite__created_at")
+
 
     class Meta:
         verbose_name = "ユーザー"

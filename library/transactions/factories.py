@@ -11,7 +11,7 @@ class LendingFactory(DjangoModelFactory):
 
     # 外部アプリのモデルは'アプリ名.クラス名'の文字列指定でSubFactoryを定義
     user = factory.SubFactory("accounts.factories.UserFactory")
-    book = factory.SubFactory("books.factories.BookFactory")
+    book = factory.SubFactory("catalog.factories.BookFactory")
 
     # 14日後の返却期限をデフォルト設定
     due_date = factory.LazyFunction(lambda: timezone.now().date() + timezone.timedelta(days=14))
@@ -24,7 +24,7 @@ class ReservationFactory(DjangoModelFactory):
         model = Reservation
 
     user = factory.SubFactory("accounts.factories.UserFactory")
-    biblio = factory.SubFactory("books.factories.BiblioFactory")
+    biblio = factory.SubFactory("catalog.factories.BiblioFactory")
     book = None  # 初期状態（WAITING）では空
     status = Reservation.Status.WAITING
     is_active = True

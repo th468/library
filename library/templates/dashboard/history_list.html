@@ -42,7 +42,7 @@
                                 <td class="small">{{ history.book.biblio.author }}</td>
                                 <td class="small text-muted">{{ history.created_at|date:"Y/m/d" }}</td>
                                 <td class="text-center">
-                                    <a href="{% url 'books:bookdetail' history.book.biblio.pk %}" class="btn btn-sm btn-link text-decoration-none">詳細を見る</a>
+                                    <a href="{% url 'catalog:bookdetail' history.book.biblio.pk %}" class="btn btn-sm btn-link text-decoration-none">詳細を見る</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -59,7 +59,7 @@
                 <div class="text-center my-5">
                     <i class="bi bi-journal-text text-muted" style="font-size: 3rem;"></i>
                     <p class="text-muted mt-3">貸出履歴はまだありません。</p>
-                    <a href="{% url 'books:booklist' %}" class="btn btn-primary rounded-pill mt-2 px-4">本を探しにいく</a>
+                    <a href="{% url 'catalog:booklist' %}" class="btn btn-primary rounded-pill mt-2 px-4">本を探しにいく</a>
                 </div>
                 {% endif %}
             </div>

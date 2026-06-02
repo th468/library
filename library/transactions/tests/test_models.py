@@ -1,5 +1,5 @@
 from accounts.factories import UserFactory
-from books.factories import BiblioFactory, BookFactory
+from catalog.factories import BiblioFactory, BookFactory
 from core.tests.test_mixins import BaseModelTestMixin
 from django.core.exceptions import ValidationError
 from django.test import TestCase
