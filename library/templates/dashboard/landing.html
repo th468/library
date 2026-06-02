@@ -1,0 +1,109 @@
+{% extends "common/base.html" %}
+{% load static %}
+
+{% block title %}Library | ビル全体を、ひとつの巨大な図書館へ。{% endblock %}
+
+{% block content %}
+<!-- 1. ヒーローセクション -->
+<div class="row align-items-center py-5 mb-5">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold text-primary mb-3">
+            ビル全体を、ひとつの巨大な図書館へ。
+        </h1>
+        <p class="lead text-muted mb-4">
+            Library（ライブラリー）は、オフィス内に分散した15,000冊の蔵書をデジタルでつなぐ、新しい社内図書プラットフォームです。
+        </p>
+        <div class="d-grid gap-3 d-md-flex">
+            <a href="{% url 'accounts:regist' %}" class="btn btn-primary btn-lg px-4 rounded-pill shadow">
+                今すぐ参加する
+            </a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg px-4 rounded-pill">
+                ログイン
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-6 d-none d-lg-block">
+        <div class="position-relative">
+            <!-- 背後のアクセント（CSSで表現） -->
+            <div class="bg-primary opacity-10 position-absolute rounded-circle" style="width: 400px; height: 400px; top: -50px; right: -50px; z-index: -1;"></div>
+            <!-- イメージ画像（Unsplashよりプレースホルダー） -->
+            <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 class="img-fluid rounded-4 shadow-lg" alt="Library Image">
+        </div>
+    </div>
+</div>
+
+<!-- 2. 実績・特徴セクション -->
+<div class="row g-4 py-5 border-top">
+    <div class="col-md-4 text-center">
+        <div class="display-5 fw-bold text-primary mb-2">15,000+</div>
+        <p class="h6 text-muted">蔵書タイトル数</p>
+        <small class="text-secondary">あらゆるジャンルの知識が集結</small>
+    </div>
+    <div class="col-md-4 text-center border-start border-end">
+        <div class="display-5 fw-bold text-primary mb-2">20</div>
+        <p class="h6 text-muted">網羅フロア数</p>
+        <small class="text-secondary">あなたのすぐ側に「本」があります</small>
+    </div>
+    <div class="col-md-4 text-center">
+        <div class="display-5 fw-bold text-primary mb-2">4,000+</div>
+        <p class="h6 text-muted">アクティブユーザー</p>
+        <small class="text-secondary">知の共有が、ここから始まる</small>
+    </div>
+</div>
+
+<!-- 3. 使い方のステップ -->
+<div class="row py-5 mt-5">
+    <div class="col-12 text-center mb-5">
+        <h2 class="fw-bold">Library の使い方</h2>
+        <p class="text-muted">本との出会いを、もっと身近に、もっと楽しく。</p>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm text-center p-4 transition-hover">
+            <div class="mx-auto mb-3 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                <i class="bi bi-search text-primary h2 mb-0"></i>
+            </div>
+            <h3 class="h5 fw-bold">1. さがす</h3>
+            <p class="small text-muted mb-0">キーワードやカテゴリから、気になる本をサッと検索。蔵書の状況もリアルタイムで分かります。</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm text-center p-4 transition-hover">
+            <div class="mx-auto mb-3 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                <i class="bi bi-calendar-check text-primary h2 mb-0"></i>
+            </div>
+            <h3 class="h5 fw-bold">2. 予約する</h3>
+            <p class="small text-muted mb-0">借りたい本が決まったら、ボタン一つで手続き完了。貸出中の場合は、予約待ちリストへ並べます。</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm text-center p-4 transition-hover">
+            <div class="mx-auto mb-3 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                <i class="bi bi-geo-alt-fill text-primary h2 mb-0"></i>
+            </div>
+            <h3 class="h5 fw-bold">3. 受け取る</h3>
+            <p class="small text-muted mb-0">予約が確定すると、本がある「正確な場所」をご案内。あとはその場所へ取りに行くだけです。</p>
+        </div>
+    </div>
+</div>
+
+<!-- 4. CTA（最終誘導） -->
+<div class="row py-5 mt-5 bg-primary text-white rounded-4 shadow text-center">
+    <div class="col-12 py-4">
+        <h2 class="mb-4">さっそく、社内の知にアクセスしましょう。</h2>
+        <a href="{% url 'accounts:regist' %}" class="btn btn-light btn-lg text-primary fw-bold px-5 rounded-pill shadow-sm transition-hover">
+            今すぐ新規登録（無料）
+        </a>
+    </div>
+</div>
+
+<style>
+    .transition-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock %}

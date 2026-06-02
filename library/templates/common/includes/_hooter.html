@@ -1,0 +1,52 @@
+<footer class="footer mt-auto py-5 bg-white border-top">
+    <div class="container">
+        <div class="row g-4">
+            <!-- 1. ブランド & 概要 -->
+            <div class="col-lg-4">
+                <h4 class="h5 fw-bold text-primary mb-3">Library</h4>
+                <p class="text-muted small">
+                    ビル全体を、ひとつの巨大な図書館へ。<br>
+                    Libraryは、オフィス内に分散した蔵書をデジタルで統合し、<br>
+                    「知の共有」を加速させる分散型図書管理システムです。
+                </p>
+            </div>
+
+            <!-- 2. サイトマップ -->
+            <div class="col-sm-6 col-lg-4">
+                <h4 class="h6 fw-bold text-dark mb-3">ナビゲーション</h4>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2"><a href="{% url 'books:booklist' %}" class="text-decoration-none text-muted">蔵書をさがす</a></li>
+                    <li class="mb-2"><a href="{% url 'dashboard:index' %}" class="text-decoration-none text-muted">マイページ</a></li>
+                    <li class="mb-2"><a href="#" class="text-decoration-none text-muted">お知らせ一覧</a></li>
+                    <li class="mb-2"><a href="#" class="text-decoration-none text-muted">利用規約</a></li>
+                </ul>
+            </div>
+
+            <!-- 3. ライブラリ拠点情報 -->
+            <div class="col-sm-6 col-lg-4">
+                <h4 class="h6 fw-bold text-dark mb-3">主要な蔵書スポット</h4>
+                <ul class="list-unstyled small text-muted mb-0">
+                    <li class="mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> 3F: テックラウンジ（技術書中心）</li>
+                    <li class="mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> 10F: クリエイティブハブ（デザイン・雑誌）</li>
+                    <li class="mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> 18F: エグゼクティブ書斎（ビジネス・経済）</li>
+                </ul>
+                <div class="mt-3">
+                    <span class="badge bg-light text-primary border border-primary-subtle fw-normal">利用可能時間: 24時間（社員のみ）</span>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4 opacity-10">
+
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start">
+                <span class="text-muted small">© 2024 Library Project - Knowledge Sharing Platform.</span>
+            </div>
+            <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                <a href="#" class="text-muted me-3"><i class="bi bi-twitter-x"></i></a>
+                <a href="#" class="text-muted me-3"><i class="bi bi-github"></i></a>
+                <a href="#" class="text-muted"><i class="bi bi-envelope-fill"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>

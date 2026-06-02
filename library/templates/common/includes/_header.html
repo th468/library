@@ -1,0 +1,63 @@
+{% load core_tags %}
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3">
+    <div class="container">
+        <!-- ロゴ -->
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard:index' %}">
+            <i class="bi bi-bank2 me-2 text-warning"></i>
+            <span class="fw-bold">Library</span>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            {# グローバル検索バー #}
+            {% global_search_bar %}
+
+            <!-- メインメニュー -->
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% active_link 'books:booklist' %}" href="{% url 'books:booklist' %}">
+                        蔵書をさがす
+                    </a>
+                </li>
+                {% if user.is_staff %}
+                <li class="nav-item">
+                    <a class="nav-link text-warning fw-bold {% active_link 'books:manageindex' %}" href="{% url 'books:manageindex' %}">
+                        <i class="bi bi-gear-fill"></i> 管理業務
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- ユーザーメニュー -->
+            <ul class="navbar-nav ms-auto align-items-center">
+                {% if user.is_authenticated %}
+                    <li class="nav-item me-3">
+                        <a class="nav-link p-0 {% active_link 'dashboard:index' %}" href="{% url 'dashboard:index' %}">
+                            <span class="badge rounded-pill bg-light text-primary py-2 px-3 border border-primary-subtle shadow-sm">
+                                <i class="bi bi-person-circle"></i> {{ user.name|default:user.em_num }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link nav-link p-0 small text-light opacity-75 text-decoration-none">
+                                ログアウト
+                            </button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">ログイン</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light btn-sm ms-2 px-3 rounded-pill" href="{% url 'accounts:regist' %}">新規登録</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

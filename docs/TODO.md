@@ -1,4 +1,4 @@
-# TODO: Libarally 将来的な拡張課題
+# TODO: Library 将来的な拡張課題
 
 ## 1. 優先度の高い拡張機能
 ### 1.1. 通知システム (Notification System)

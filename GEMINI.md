@@ -1,4 +1,4 @@
-# Project Instructions: Libarally
+# Project Instructions: Library
 
 ## 1. プロジェクト目的と背景
 - **目的:** 就職活動用ポートフォリオ。架空会社からの依頼に基づく分散型図書館アプリのプロトタイプ。
@@ -6,7 +6,7 @@
 - **UX制約:** 持ち出し防止とデータ整合性のため、**場所情報は貸出/予約確定時のみ表示**する設計を厳守する。
 
 ## 2. ディレクトリ構造の役割
-- `libarally/`: Djangoプロジェクトルート
+- `library/`: Djangoプロジェクトルート
   - `core/`: 抽象基盤（BaseModel, Mixins, Tags）。全アプリの共通規約。
   - `accounts/`: ユーザー認証、部署管理、権限。
   - `books/`: 静的データ管理（書誌・蔵書・保管場所・お気に入り）。
@@ -40,6 +40,6 @@
 - **効率的更新:** `replace` ツールを優先し、ピンポイントで正確に修正する（省略記号 `...` は使用不可）。
 
 ## 6. 主要コマンド
-- テスト: `python libarally/manage.py test libarally`
+- テスト: `python library/manage.py test library`
 - 品質チェック: `ruff check .` / `mypy .`
-- DB: `python libarally/manage.py makemigrations` / `migrate`
+- DB: `python library/manage.py makemigrations` / `migrate`

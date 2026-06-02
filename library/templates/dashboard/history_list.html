@@ -1,0 +1,69 @@
+{% extends "common/base.html" %}
+{% load core_tags %}
+
+{% block title %}{{ page_title }} | Library{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-end border-bottom pb-2">
+            <h2 class="h3 mb-0">{{ page_title }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">マイページ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">貸出履歴</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                {% if history_list %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">返却日</th>
+                                <th>タイトル</th>
+                                <th>著者</th>
+                                <th>貸出日</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for history in history_list %}
+                            <tr>
+                                <td class="ps-4 small text-muted">{{ history.return_date|date:"Y/m/d" }}</td>
+                                <td class="fw-bold text-dark">{{ history.book.biblio.title }}</td>
+                                <td class="small">{{ history.book.biblio.author }}</td>
+                                <td class="small text-muted">{{ history.created_at|date:"Y/m/d" }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'books:bookdetail' history.book.biblio.pk %}" class="btn btn-sm btn-link text-decoration-none">詳細を見る</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {# ページネーションの読み込み #}
+                <div class="pb-4">
+                    {% include "common/includes/_pagination.html" with page_obj=page_obj %}
+                </div>
+                
+                {% else %}
+                <div class="text-center my-5">
+                    <i class="bi bi-journal-text text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3">貸出履歴はまだありません。</p>
+                    <a href="{% url 'books:booklist' %}" class="btn btn-primary rounded-pill mt-2 px-4">本を探しにいく</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "common/base.html" %}
+
+{% block title %}管理メニュー | Library{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="mb-4">
+            <h2 class="h3 fw-bold border-bottom pb-2">管理業務メニュー</h2>
+            <p class="text-muted small">管理者およびスタッフ専用の操作メニューです。</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Django Admin への案内 -->
+            <div class="col-12">
+                <div class="card border-primary-subtle shadow-sm bg-light">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-primary text-white rounded-circle p-3 me-4">
+                                <i class="bi bi-database-fill-gear h3 mb-0"></i>
+                            </div>
+                            <div>
+                                <h3 class="h5 fw-bold">データベース管理 (Django Admin)</h3>
+                                <p class="text-muted small mb-3">
+                                    書誌情報の登録、在庫（実体）の追加、フロア・棚のマスター管理、<br>
+                                    およびユーザー権限の調整などは、標準の管理画面から行えます。
+                                </p>
+                                <a href="/admin/" target="_blank" class="btn btn-primary px-4 rounded-pill">
+                                    管理システムを開く <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 将来的な業務ツール（現在はプレースホルダー） -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm opacity-50">
+                    <div class="card-body">
+                        <h4 class="h6 fw-bold"><i class="bi bi-graph-up me-2"></i> 貸出統計（準備中）</h4>
+                        <p class="x-small text-muted mb-0">フロア別の利用状況や人気ジャンルの分析を行います。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm opacity-50">
+                    <div class="card-body">
+                        <h4 class="h6 fw-bold"><i class="bi bi-megaphone me-2"></i> 一斉通知（準備中）</h4>
+                        <p class="x-small text-muted mb-0">全ユーザー、または延滞者のみへの通知を作成します。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 text-center">
+            <a href="{% url 'dashboard:index' %}" class="btn btn-link text-muted text-decoration-none">
+                <i class="bi bi-arrow-left"></i> 自分のダッシュボードへ戻る
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+</style>
+{% endblock %}
