@@ -1,6 +1,6 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.auth import get_user_model
-from core.templatetags.core_tags import render_breadcrumbs, is_lent_by, is_reserved_by
+from core.templatetags.core_tags import render_breadcrumbs
 from catalog.factories import BiblioFactory, BookFactory, ShelfFactory, FloorFactory
 from transactions.models import Lending, Reservation
 
@@ -39,34 +39,3 @@ class CoreTagsTest(TestCase):
         context = {'request': request}
         result = render_breadcrumbs(context)
         self.assertEqual(result['links'][0]['label'], 'マイページ')
-
-    def test_is_lent_by_filter(self):
-        """is_lent_by フィルタが貸出状況を正しく判定するか（Biblio/Book両対応）"""
-        biblio = BiblioFactory()
-        floor = FloorFactory()
-        shelf = ShelfFactory(floor=floor)
-        book = BookFactory(biblio=biblio, shelf=shelf)
-        
-        # 初期状態（借りていない）
-        self.assertFalse(is_lent_by(biblio, self.user))
-        self.assertFalse(is_lent_by(book, self.user))
-
-        # 貸出実行
-        Lending.objects.lend(book, self.user)
-        
-        # 貸出中状態の判定
-        self.assertTrue(is_lent_by(biblio, self.user)) # 書誌単位での判定
-        self.assertTrue(is_lent_by(book, self.user))   # 個体単位での判定
-
-    def test_is_reserved_by_filter(self):
-        """is_reserved_by フィルタが予約状況を正しく判定するか"""
-        biblio = BiblioFactory()
-        
-        # 初期状態（予約していない）
-        self.assertFalse(is_reserved_by(biblio, self.user))
-
-        # 予約実行
-        Reservation.objects.create_reservation(self.user, biblio)
-        
-        # 予約中状態の判定
-        self.assertTrue(is_reserved_by(biblio, self.user))

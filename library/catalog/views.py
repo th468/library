@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from core.views.mixins import PageTitleMixin, SearchMixin, StaffManagerMixin
+from core.views.mixins import LibStatusMixin, PageTitleMixin, SearchMixin, StaffManagerMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import (
@@ -15,7 +15,7 @@ from .models import Biblio, Book, Favorite, Floor, Shelf
 # region __公開用ビュー（ユーザー向け）__
 
 # #蔵書検索一覧
-class BiblioSearchListView(PageTitleMixin, SearchMixin, ListView):
+class BiblioSearchListView(LibStatusMixin, PageTitleMixin, SearchMixin, ListView):
     model = Biblio
     template_name = "catalog/book_list.html"
     context_object_name = "biblios"
@@ -36,7 +36,7 @@ class BiblioSearchListView(PageTitleMixin, SearchMixin, ListView):
         return queryset.order_by(order_by).prefetch_related("categories", "books").distinct()
 
 # #蔵書詳細
-class BiblioDetailView(LoginRequiredMixin, PageTitleMixin, DetailView):
+class BiblioDetailView(LoginRequiredMixin, LibStatusMixin, PageTitleMixin, DetailView):
     model = Biblio
     template_name = "catalog/book_detail.html"
     context_object_name = "biblio"

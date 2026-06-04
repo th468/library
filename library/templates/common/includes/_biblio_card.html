@@ -22,7 +22,7 @@
             <form action="{% url 'catalog:favorite_toggle' item.pk %}" method="post" class="position-absolute top-0 end-0 m-2" style="z-index: 10;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-white shadow-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                    {% if item|is_favorited_by:user %}
+                    {% if item.id in user_favorite_ids %}
                         <i class="bi bi-heart-fill text-danger"></i>
                     {% else %}
                         <i class="bi bi-heart text-muted"></i>

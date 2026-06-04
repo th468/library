@@ -3,9 +3,9 @@
 {# 引数: item (Biblio), user (User) #}
 
 <div class="position-absolute top-0 end-0 p-2">
-    {% if item|is_lent_by:user %}
+    {% if item.id in user_lending_ids %}
         <span class="badge bg-primary shadow-sm"><i class="bi bi-person-check-fill"></i> 貸出中（あなた）</span>
-    {% elif item|is_reserved_by:user %}
+    {% elif item.id in user_reservation_ids %}
         <span class="badge bg-info shadow-sm"><i class="bi bi-calendar-check"></i> 予約中</span>
     {% elif item.is_available %}
         <span class="badge bg-success shadow-sm">在庫あり ({{ item.available_count }}/{{ item.total_count }})</span>

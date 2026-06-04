@@ -35,6 +35,7 @@
 
 ## 5. Operational Protocols
 - **TODO Management:** Any technical debt or future enhancements identified during implementation **MUST** be recorded in `docs/TODO.md`.
+- **Architectural Documentation:** Major design decisions, performance optimizations, and technical rationales (e.g., Mixin hierarchies, N+1 solutions) **MUST** be documented in `docs/ARCH_DESIGN.md` to ensure design transparency and knowledge transfer.
 - **Architecture First:** Prioritize fixing structural or data model issues over local surgical fixes.
 
 ## 6. Primary Commands
@@ -79,5 +80,6 @@
 
 ### 5. 運用プロトコル
 - **TODO管理:** 実装中に発見した技術的負債や将来の改善案は、必ず `docs/TODO.md` に記録しなければならない（MUST）。
+- **設計の文書化:** 重要な設計判断、パフォーマンスの最適化、および技術的な根拠（Mixinの階層化、N+1の解決策など）は、設計の透明性と知識移転を確保するため、必ず `docs/ARCH_DESIGN.md` に文書化しなければならない（MUST）。
 - **構造優先:** 局所的な修正よりも、構造的またはデータモデルの問題の解決を優先すること。
 </aside>

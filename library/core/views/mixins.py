@@ -53,3 +53,60 @@ class StaffManagerMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         return self.request.user.is_staff
+
+
+class FavoriteContextMixin:
+    """ユーザーのお気に入り書誌IDをセット形式で取得する Mixin。"""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        if user.is_authenticated:
+            from catalog.models import Favorite
+
+            favorite_ids = set(Favorite.objects.filter(user=user).values_list("biblio_id", flat=True))
+        else:
+            favorite_ids = set()
+        context["user_favorite_ids"] = favorite_ids
+        return context
+
+
+class LendingContextMixin:
+    """ユーザーが貸出中の書誌IDをセット形式で取得する Mixin。"""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        if user.is_authenticated:
+            from transactions.models import Lending
+
+            lending_ids = set(Lending.objects.ongoing().filter(user=user).values_list("book__biblio_id", flat=True))
+        else:
+            lending_ids = set()
+        context["user_lending_ids"] = lending_ids
+        return context
+
+
+class ReservationContextMixin:
+    """ユーザーが予約中の書誌IDをセット形式で取得する Mixin。"""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        if user.is_authenticated:
+            from transactions.models import Reservation
+
+            reservation_ids = set(Reservation.objects.ongoing().filter(user=user).values_list("biblio_id", flat=True))
+        else:
+            reservation_ids = set()
+        context["user_reservation_ids"] = reservation_ids
+        return context
+
+
+class LibStatusMixin(FavoriteContextMixin, LendingContextMixin, ReservationContextMixin):
+    """
+    お気に入り、貸出、予約のステータスを一括で取得する統合 Mixin。
+    単一の Mixin 継承で全ステータスを取得可能にする。
+    """
+
+    pass

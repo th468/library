@@ -42,7 +42,7 @@
                 <form action="{% url 'catalog:favorite_toggle' biblio.pk %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger rounded-pill px-3 d-flex align-items-center gap-2">
-                        {% if biblio|is_favorited_by:user %}
+                        {% if biblio.id in user_favorite_ids %}
                             <i class="bi bi-heart-fill"></i> お気に入り解除
                         {% else %}
                             <i class="bi bi-heart"></i> お気に入り登録

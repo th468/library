@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from core.models.mixins import RenameUniqueFieldsMixin
 from catalog.factories import BiblioFactory, BookFactory, ShelfFactory, FloorFactory
 
 User = get_user_model()
@@ -52,3 +53,20 @@ class BookViewsTest(TestCase):
         response = self.client.get(reverse('catalog:booklist'), {'q': 'Python'})
         self.assertEqual(len(response.context['biblios']), 1)
         self.assertEqual(response.context['biblios'][0].title, "Python入門")
+
+    def test_lib_status_context_provided(self):
+        """ログイン時、一覧および詳細ビューにユーザー状態（お気に入り等）が注入されているか"""
+        from catalog.factories import FavoriteFactory
+        FavoriteFactory.create(user=self.user, biblio=self.biblio)
+        
+        self.client.login(email="user@example.com", password="password123")
+        
+        # 1. 一覧ビューの検証
+        list_res = self.client.get(reverse('catalog:booklist'))
+        self.assertIn('user_favorite_ids', list_res.context)
+        self.assertIn(self.biblio.id, list_res.context['user_favorite_ids'])
+        
+        # 2. 詳細ビューの検証
+        detail_res = self.client.get(reverse('catalog:bookdetail', kwargs={'pk': self.biblio.pk}))
+        self.assertIn('user_favorite_ids', detail_res.context)
+        self.assertIn(self.biblio.id, detail_res.context['user_favorite_ids'])
