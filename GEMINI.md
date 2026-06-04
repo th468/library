@@ -43,6 +43,11 @@
 - Quality: `ruff check .` / `mypy .`
 - Database: `python library/manage.py makemigrations` / `migrate`
 
+## 7. Session Wrap-up Protocol
+- **Summary Format:** When explicitly instructed by the user, provide a concise summary of the achievements.
+    - **Top-line Summary:** A single sentence of max 30 characters summarizing the core achievement.
+    - **Detailed Items:** 3-5 bullet points describing specific technical milestones and outcomes.
+
 ---
 
 ## 日本語訳・詳細解説 (Human-Readable Appendix)
@@ -82,4 +87,14 @@
 - **TODO管理:** 実装中に発見した技術的負債や将来の改善案は、必ず `docs/TODO.md` に記録しなければならない（MUST）。
 - **設計の文書化:** 重要な設計判断、パフォーマンスの最適化、および技術的な根拠（Mixinの階層化、N+1の解決策など）は、設計の透明性と知識移転を確保するため、必ず `docs/ARCH_DESIGN.md` に文書化しなければならない（MUST）。
 - **構造優先:** 局所的な修正よりも、構造的またはデータモデルの問題の解決を優先すること。
+
+### 6. 主要コマンド
+- テスト: `python library/manage.py test library`
+- 品質: `ruff check .` / `mypy .`
+- データベース: `python library/manage.py makemigrations` / `migrate`
+
+### 7. セッション終了プロトコル
+- **まとめ形式:** ユーザーから明示的な指示があった際に、成果の簡潔な要約を提供すること。
+    - **要約（一行）:** その日の核心的な成果を 30 文字以内で記述する。
+    - **個別項目:** 具体的な技術的マイルストーンや成果を 3〜5 つの箇条書きで記述する。
 </aside>
