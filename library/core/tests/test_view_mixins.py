@@ -1,10 +1,11 @@
+from accounts.factories import UserFactory
+from catalog.factories import FavoriteFactory
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 from django.views.generic import TemplateView
-from django.contrib.auth.models import AnonymousUser
-from core.views.mixins import LibStatusMixin
-from accounts.factories import UserFactory
-from catalog.factories import BiblioFactory, BookFactory, FavoriteFactory
 from transactions.factories import LendingFactory, ReservationFactory
+
+from core.views.mixins import LibStatusMixin
 
 
 class DummyView(LibStatusMixin, TemplateView):
@@ -36,7 +37,7 @@ class LibStatusMixinTest(TestCase):
         self.assertIn(favorite.biblio_id, context["user_favorite_ids"])
         self.assertIn(lending.book.biblio_id, context["user_lending_ids"])
         self.assertIn(reservation.biblio_id, context["user_reservation_ids"])
-        
+
         # 型の検証 (set であること)
         self.assertIsInstance(context["user_favorite_ids"], set)
         self.assertIsInstance(context["user_lending_ids"], set)

@@ -1,7 +1,7 @@
+from core.views.mixins import LibStatusMixin, PageTitleMixin, SearchMixin, StaffManagerMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from core.views.mixins import LibStatusMixin, PageTitleMixin, SearchMixin, StaffManagerMixin
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.views import View
 from django.views.generic import (
     DetailView,
@@ -9,8 +9,7 @@ from django.views.generic import (
     TemplateView,
 )
 
-from .models import Biblio, Book, Favorite, Floor, Shelf
-
+from .models import Biblio, Favorite
 
 # region __公開用ビュー（ユーザー向け）__
 

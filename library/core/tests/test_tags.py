@@ -1,8 +1,7 @@
-from django.test import TestCase, RequestFactory
 from django.contrib.auth import get_user_model
+from django.test import RequestFactory, TestCase
+
 from core.templatetags.core_tags import render_breadcrumbs
-from catalog.factories import BiblioFactory, BookFactory, ShelfFactory, FloorFactory
-from transactions.models import Lending, Reservation
 
 User = get_user_model()
 
@@ -13,8 +12,8 @@ class CoreTagsTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.user = User.objects.create_user(
-            email="test@example.com", 
-            em_num="TEST001", 
+            email="test@example.com",
+            em_num="TEST001",
             password="password123"
         )
 

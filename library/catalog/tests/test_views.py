@@ -1,8 +1,8 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
-from core.models.mixins import RenameUniqueFieldsMixin
-from catalog.factories import BiblioFactory, BookFactory, ShelfFactory, FloorFactory
+
+from catalog.factories import BiblioFactory, BookFactory, FloorFactory, ShelfFactory
 
 User = get_user_model()
 
@@ -12,8 +12,8 @@ class BookViewsTest(TestCase):
     """
     def setUp(self):
         self.user = User.objects.create_user(
-            email="user@example.com", 
-            em_num="U001", 
+            email="user@example.com",
+            em_num="U001",
             password="password123"
         )
         self.floor = FloorFactory()
@@ -48,7 +48,7 @@ class BookViewsTest(TestCase):
         """キーワード検索が正しく機能するか"""
         BiblioFactory(title="Python入門")
         BiblioFactory(title="Djangoガイド")
-        
+
         # 'Python' で検索
         response = self.client.get(reverse('catalog:booklist'), {'q': 'Python'})
         self.assertEqual(len(response.context['biblios']), 1)
@@ -56,17 +56,31 @@ class BookViewsTest(TestCase):
 
     def test_lib_status_context_provided(self):
         """ログイン時、一覧および詳細ビューにユーザー状態（お気に入り等）が注入されているか"""
+        from transactions.factories import LendingFactory
+
         from catalog.factories import FavoriteFactory
+
         FavoriteFactory.create(user=self.user, biblio=self.biblio)
-        
+        lending = LendingFactory.create(user=self.user, book=self.book)
+
         self.client.login(email="user@example.com", password="password123")
-        
+
         # 1. 一覧ビューの検証
         list_res = self.client.get(reverse('catalog:booklist'))
         self.assertIn('user_favorite_ids', list_res.context)
         self.assertIn(self.biblio.id, list_res.context['user_favorite_ids'])
-        
+        self.assertIn(self.biblio.id, list_res.context['user_lending_ids'])
+
         # 2. 詳細ビューの検証
         detail_res = self.client.get(reverse('catalog:bookdetail', kwargs={'pk': self.biblio.pk}))
         self.assertIn('user_favorite_ids', detail_res.context)
-        self.assertIn(self.biblio.id, detail_res.context['user_favorite_ids'])
+        self.assertIn('user_lent_book_ids', detail_res.context)
+        self.assertIn(self.book.id, detail_res.context['user_lent_book_ids'])
+
+    def test_lib_status_anonymous_user(self):
+        """未ログイン時でも、context に空のセットが含まれ、エラーにならないか"""
+        response = self.client.get(reverse('catalog:booklist'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['user_favorite_ids'], set())
+        self.assertEqual(response.context['user_lending_ids'], set())
+        self.assertEqual(response.context['user_lent_book_ids'], set())

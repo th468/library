@@ -157,7 +157,7 @@ class ReservationManagerTest(TestCase):
         # 3. 検証
         res.refresh_from_db()
         self.assertEqual(res.status, 4)  # CANCELED
-        
+
         book.refresh_from_db()
         self.assertEqual(book.status, 1)  # AVAILABLE (次予約者がいないため)
 

@@ -1,14 +1,16 @@
 import os
+
 import django
 
 # Djangoの設定をロード
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from django.db import connection
-from catalog.models import Book, Biblio, Category, Floor, Shelf
-from transactions.models import Lending, Reservation
 from accounts.models import User
+from catalog.models import Biblio, Book, Category, Floor, Shelf
+from django.db import connection
+from transactions.models import Lending, Reservation
+
 
 def clean_and_seed():
     print("=== 全データを一掃し、クリーンな再投入を開始します ===")
@@ -16,7 +18,7 @@ def clean_and_seed():
     # 1. 外部キー制約を一時的に無視して全削除 (SQLite用)
     with connection.cursor() as cursor:
         cursor.execute('PRAGMA foreign_keys = OFF;')
-        
+
         print("既存データを一括削除中...")
         Lending.objects.all().delete()
         Reservation.objects.all().delete()
@@ -26,7 +28,7 @@ def clean_and_seed():
         Shelf.objects.all().delete()
         Floor.objects.all().delete()
         User.objects.exclude(email="admin@example.com").delete()
-        
+
         cursor.execute('PRAGMA foreign_keys = ON;')
 
     # 2. 基礎データの作成
@@ -38,7 +40,7 @@ def clean_and_seed():
     if created:
         admin.set_password("password123")
         admin.save()
-    
+
     cat_it = Category.objects.create(name="IT・技術書")
     cat_novel = Category.objects.create(name="小説")
     floor_1 = Floor.objects.create(name="1F")
@@ -57,7 +59,7 @@ def clean_and_seed():
         )
         # カテゴリの紐付け
         biblio.categories.add(cat_it if i % 2 == 0 else cat_novel)
-        
+
         # 実体(Book)の作成
         # models.py の save() 内の自動採番ロジックを確実に走らせる
         Book.objects.create(
@@ -66,9 +68,9 @@ def clean_and_seed():
             status=1 # AVAILABLE
         )
 
-    print(f"\n=== 完了しました！ ===")
+    print("\n=== 完了しました！ ===")
     print(f"catalog: {Book.objects.count()}, Biblios: {Biblio.objects.count()}")
-    print(f"ログイン: admin@example.com / password123")
+    print("ログイン: admin@example.com / password123")
 
 if __name__ == "__main__":
     clean_and_seed()

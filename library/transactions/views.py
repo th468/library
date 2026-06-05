@@ -1,11 +1,11 @@
+from catalog.models import Book
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views import View
 
-from catalog.models import Biblio, Book
 from .models import Lending, Reservation
 
 

@@ -72,7 +72,7 @@ class FavoriteContextMixin:
 
 
 class LendingContextMixin:
-    """ユーザーが貸出中の書誌IDをセット形式で取得する Mixin。"""
+    """ユーザーが貸出中の書誌IDおよび蔵書IDをセット形式で取得する Mixin。"""
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -80,10 +80,17 @@ class LendingContextMixin:
         if user.is_authenticated:
             from transactions.models import Lending
 
-            lending_ids = set(Lending.objects.ongoing().filter(user=user).values_list("book__biblio_id", flat=True))
+            # DBアクセスを1回に集約するため、タプル形式で一括取得
+            ongoing_data = Lending.objects.ongoing().filter(user=user).values_list("book__biblio_id", "book_id")
+
+            # Python側でそれぞれのIDセットに振り分け（メモリ上での高速処理）
+            biblio_ids = {item[0] for item in ongoing_data}
+            book_ids = {item[1] for item in ongoing_data}
         else:
-            lending_ids = set()
-        context["user_lending_ids"] = lending_ids
+            biblio_ids = set()
+            book_ids = set()
+        context["user_lending_ids"] = biblio_ids
+        context["user_lent_book_ids"] = book_ids
         return context
 
 

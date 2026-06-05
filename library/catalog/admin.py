@@ -1,5 +1,7 @@
 from django.contrib import admin
+
 from .models import Biblio, Book, Category, Floor, Shelf
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -28,7 +30,7 @@ class BookAdmin(admin.ModelAdmin):
     list_display = ('biblio_title', 'count', 'shelf', 'status', 'is_active')
     list_filter = ('status', 'shelf__floor', 'is_active')
     search_fields = ('biblio__title', 'biblio__isbn')
-    
+
     def biblio_title(self, obj):
         return obj.biblio.title
     biblio_title.short_description = '書誌タイトル'

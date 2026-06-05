@@ -1,7 +1,7 @@
 import factory
+from accounts.factories import UserFactory
 from factory.django import DjangoModelFactory
 
-from accounts.factories import UserFactory
 from .models import Biblio, Book, Category, Favorite, Floor, Shelf
 
 

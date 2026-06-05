@@ -1,15 +1,16 @@
+from catalog.models import Biblio
+from core.views.mixins import PageTitleMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, TemplateView
-from catalog.models import Biblio
 from transactions.models import Lending
-from core.views.mixins import PageTitleMixin
+
 
 class DashboardIndexView(TemplateView):
     """
     サイトトップ / ダッシュボード
     ログイン状況に応じて「紹介ページ」と「ユーザー専用ダッシュボード」を出し分ける。
     """
-    
+
     def get_template_names(self):
         # ログイン状態によって使用するテンプレートを動的に切り替え
         if self.request.user.is_authenticated:
@@ -18,14 +19,14 @@ class DashboardIndexView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # ログイン済みの場合のみ、ダッシュボード用のデータを取得
         if self.request.user.is_authenticated:
             # ユーザー共通の情報（新着本など）を取得
             context['recent_biblios'] = Biblio.objects.all().order_by('-created_at')[:5]
             # お気に入り登録した本を取得（最新5件）
             context['favorite_biblios'] = self.request.user.favorite_biblios[:5]
-        
+
         return context
 
 

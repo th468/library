@@ -1,6 +1,6 @@
-from django import template
-from django.urls import reverse, NoReverseMatch
 from catalog.models import Category
+from django import template
+from django.urls import NoReverseMatch, reverse
 
 register = template.Library()
 
@@ -31,7 +31,7 @@ def active_link(context, url_name, css_class='active'):
     request = context.get('request')
     if not request:
         return ""
-    
+
     try:
         # url_name から実際のパスを逆引き
         target_url = reverse(url_name)
@@ -41,7 +41,7 @@ def active_link(context, url_name, css_class='active'):
             return css_class
     except NoReverseMatch:
         pass
-    
+
     return ""
 
 @register.inclusion_tag('common/includes/_breadcrumbs.html', takes_context=True)
@@ -55,7 +55,7 @@ def render_breadcrumbs(context):
 
     path = request.path.strip('/')
     segments = path.split('/')
-    
+
     # URL セグメントと日本語ラベルのマッピング
     label_map = {
         'catalog': '蔵書をさがす',
@@ -71,13 +71,13 @@ def render_breadcrumbs(context):
 
     breadcrumbs = []
     current_url = '/'
-    
+
     for i, segment in enumerate(segments):
         if not segment:
             continue
-            
+
         current_url += f"{segment}/"
-        
+
         # ID（数字）の場合は「詳細」などのラベルにする
         if segment.isdigit():
             # 1つ前のセグメントを見てラベルを調整

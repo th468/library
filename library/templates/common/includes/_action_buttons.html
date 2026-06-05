@@ -3,7 +3,7 @@
 {# 引数: book (Book), user (User) #}
 
 <div class="d-flex justify-content-center">
-    {% if book|is_lent_by:user %}
+    {% if book.id in user_lent_book_ids %}
         <!-- 自身が借りている場合：返却ボタン -->
         <form action="{% url 'transactions:collect' book.pk %}" method="post" onsubmit="return confirm('この本を返却しますか？');">
             {% csrf_token %}
