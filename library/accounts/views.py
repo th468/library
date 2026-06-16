@@ -1,53 +1,77 @@
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import (
+    LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView
+)
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, DetailView, UpdateView
 
-from .forms import UserCreationForm, UserLoginForm
+from .forms import UserCreationForm, UserLoginForm, ProfileEditForm
 
-
-def regist(request):
-    user_form = UserCreationForm(request.POST or None)
-    if user_form.is_valid():
-        user_form.save()
-    return render(
-        request,
-        "accounts/registration.html",
-        context={
-            "form": user_form,
-        },
-    )
+User = get_user_model()
 
 
-def login_view(request):
-    login_form = UserLoginForm(request.POST or None)
+class UserLoginView(LoginView):
+    """ログインビュー"""
+    form_class = UserLoginForm
+    template_name = "accounts/login.html"
+    redirect_authenticated_user = True
 
-    next_url = request.GET.get("next") or request.POST.get("next")
-
-    if login_form.is_valid():
-        email = login_form.cleaned_data.get("email")
-        password = login_form.cleaned_data.get("password")
-        user = authenticate(request, email=email, password=password)
-
-        if user is not None and user.is_authenticated:
-            login(request, user)
-            # ネクスト処理
-            if next_url:
-                redirect_url = next_url
-            else:
-                redirect_url = "dashboard:index"
-            return redirect(redirect_url)
-        else:
-            login_form.add_error(None, "ログインに失敗しました")
-
-    return render(request, "accounts/login.html", context={"form": login_form, "next_url": next_url})
+    def get_success_url(self):
+        return self.get_redirect_url() or reverse_lazy("dashboard:index")
 
 
-@login_required
-def logout_view(request):
-    logout(request)
-    return redirect("accounts:login")
+class UserLogoutView(LogoutView):
+    """ログアウトビュー"""
+    next_page = "accounts:login"
 
 
-@login_required
-def info(request):
-    return render(request, "accounts/info.html")
+class UserRegistrationView(CreateView):
+    """ユーザー登録ビュー"""
+    model = User
+    form_class = UserCreationForm
+    template_name = "accounts/registration.html"
+    success_url = reverse_lazy("accounts:login")
+
+
+class ProfileDetailView(LoginRequiredMixin, DetailView):
+    """プロフィール詳細ビュー"""
+    model = User
+    template_name = "accounts/profile_detail.html"
+    context_object_name = "profile_user"
+
+    def get_object(self, queryset=None):
+        # ログイン中のユーザー自身を返す
+        return self.request.user
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    """プロフィール編集ビュー"""
+    model = User
+    form_class = ProfileEditForm
+    template_name = "accounts/profile_edit.html"
+    success_url = reverse_lazy("accounts:profile_detail")
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["profile_url"] = reverse_lazy("accounts:profile_detail")
+        return context
+
+
+class UserPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    """パスワード変更ビュー"""
+    template_name = "accounts/password_change.html"
+    success_url = reverse_lazy("accounts:password_change_done")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["profile_url"] = reverse_lazy("accounts:profile_detail")
+        return context
+
+
+class UserPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
+    """パスワード変更完了ビュー"""
+    template_name = "accounts/password_change_done.html"

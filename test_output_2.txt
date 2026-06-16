@@ -35,7 +35,7 @@ test_login_success (accounts.tests.test_views.UserAccountViewsTest.test_login_su
 test_login_view_get (accounts.tests.test_views.UserAccountViewsTest.test_login_view_get)
 ログイン画面の表示確認 ... ERROR
 test_logout (accounts.tests.test_views.UserAccountViewsTest.test_logout)
-ログアウト機能の確認 ... FAIL
+ログアウト機能の確認 ... ERROR
 test_password_change_success (accounts.tests.test_views.UserAccountViewsTest.test_password_change_success)
 パスワード変更の成功 ... ok
 test_profile_detail_view_login_required (accounts.tests.test_views.UserAccountViewsTest.test_profile_detail_view_login_required)
@@ -241,11 +241,83 @@ Traceback (most recent call last):
 TypeError: BaseForm.__init__() got an unexpected keyword argument 'request'
 
 ======================================================================
+ERROR: test_logout (accounts.tests.test_views.UserAccountViewsTest.test_logout)
+ログアウト機能の確認
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 59, in test_logout
+    self.assertRedirects(response, reverse("accounts:login"))
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\testcases.py", line 501, in assertRedirects
+    redirect_response = response.client.get(
+        path,
+    ...<3 lines>...
+        **extra,
+    )
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\client.py", line 1127, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\client.py", line 475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\client.py", line 1090, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\views\decorators\debug.py", line 143, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\contrib\auth\views.py", line 89, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\views\generic\base.py", line 145, in dispatch
+    return handler(request, *args, **kwargs)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\views\generic\edit.py", line 142, in get
+    return self.render_to_response(self.get_context_data())
+                                   ~~~~~~~~~~~~~~~~~~~~~^^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\contrib\auth\views.py", line 112, in get_context_data
+    context = super().get_context_data(**kwargs)
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\views\generic\edit.py", line 72, in get_context_data
+    kwargs["form"] = self.get_form()
+                     ~~~~~~~~~~~~~^^
+  File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\views\generic\edit.py", line 37, in get_form
+    return form_class(**self.get_form_kwargs())
+TypeError: BaseForm.__init__() got an unexpected keyword argument 'request'
+
+======================================================================
 ERROR: test_profile_detail_view_login_required (accounts.tests.test_views.UserAccountViewsTest.test_profile_detail_view_login_required)
 未ログイン時は詳細画面にアクセスできない
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 96, in test_profile_detail_view_login_required
+  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 97, in test_profile_detail_view_login_required
     self.assertRedirects(response, f"{reverse('accounts:login')}?next={reverse('accounts:profile_detail')}")
     ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\testcases.py", line 501, in assertRedirects
@@ -317,7 +389,7 @@ ERROR: test_registration_email_duplicate (accounts.tests.test_views.UserAccountV
 メールアドレス重複時のエラー
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 89, in test_registration_email_duplicate
+  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 90, in test_registration_email_duplicate
     self.assertFormError(response, "form", "email", "このメールアドレスは既に登録されています。")
     ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\testcases.py", line 708, in assertFormError
@@ -333,7 +405,7 @@ ERROR: test_registration_success (accounts.tests.test_views.UserAccountViewsTest
 正常なユーザー登録
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 77, in test_registration_success
+  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 78, in test_registration_success
     self.assertRedirects(response, reverse("accounts:login"))
     ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "c:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\.venv\Lib\site-packages\django\test\testcases.py", line 501, in assertRedirects
@@ -400,20 +472,10 @@ Traceback (most recent call last):
     return form_class(**self.get_form_kwargs())
 TypeError: BaseForm.__init__() got an unexpected keyword argument 'request'
 
-======================================================================
-FAIL: test_logout (accounts.tests.test_views.UserAccountViewsTest.test_logout)
-ログアウト機能の確認
 ----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "C:\Users\【訓練生PC】GuestUser\Desktop\クリエイティブ学習＿長谷川\ポートフォリオ作成_長谷川\library\accounts\tests\test_views.py", line 58, in test_logout
-    self.assertRedirects(response, reverse("accounts:login"))
-    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 405 != 302 : Response didn't redirect as expected: Response code was 405 (expected 302)
+Ran 11 tests in 9.133s
 
-----------------------------------------------------------------------
-Ran 11 tests in 9.030s
-
-FAILED (failures=1, errors=6)
+FAILED (errors=7)
 Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
 
   Applying transactions.0001_initial... OK

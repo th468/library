@@ -1,10 +1,16 @@
 {% extends "common/layouts/centered_card.html" %}
 
-{% block title %}ログイン{% endblock %}
+{% block title %}ログイン | Library{% endblock %}
 
-{% block content  %}
-{% include "common/includes/_form.html" %}
-{% endblock  %}
+{% block card_title %}ログイン{% endblock %}
 
+{% block card_content %}
+    {% include "common/includes/_form.html" with btn_text="ログイン" btn_icon="bi-box-arrow-in-right" %}
+{% endblock %}
 
-
+{% block card_footer %}
+    <p class="text-muted small">
+        アカウントをお持ちでないですか？ 
+        <a href="{% url 'accounts:regist' %}" class="text-primary text-decoration-none fw-bold">新規登録</a>
+    </p>
+{% endblock %}

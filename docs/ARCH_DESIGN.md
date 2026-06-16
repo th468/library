@@ -24,6 +24,21 @@ We implemented a set of reusable Mixins in `core/views/mixins.py` to pre-fetch s
 
 ---
 
+## 2. UI Component Strategy (Modular Forms & Layouts)
+
+### 2.1. The Goal: Design Consistency and Development Speed
+To maintain a high-quality, professional UI across all apps while accelerating development, we adopted a modular approach to templates.
+
+### 2.2. Two-Tier Form Component Design
+We separated form logic into two levels of granularity:
+- **`_form_field.html` (Atom):** Manages the rendering of a single input field, including its label, required marker, Bootstrap 5 validation states (`is-invalid`), and help texts. This allows for custom layouts where fields are not simply linear.
+- **`_form.html` (Molecule):** Manages the form container, CSRF tokens, non-field errors, and action buttons. It utilizes `_form_field.html` in a loop for standard forms but can be bypassed for complex layouts.
+
+### 2.3. Layout Inheritance for Authentication
+We introduced `centered_card.html` as a specialized layout for focused, single-purpose screens (login, registration, password changes). This ensures a consistent user experience and simplifies responsive design across all entry points.
+
+---
+
 ## 1. ユーザーライブラリステータスの最適化（階層型 Mixin）
 
 <aside>
@@ -44,4 +59,19 @@ We implemented a set of reusable Mixins in `core/views/mixins.py` to pre-fetch s
 - **メモリ効率:** `.values_list('biblio_id', flat=True)` を使用して必要な主キーのみを取得し、Django モデルオブジェクト全体のインスタンス化に伴うオーバーヘッドを回避しました。
 - **検索パフォーマンス:** クエリ結果を Python の `set`（集合型）に変換しました。これにより、テンプレート側での判定（`{% if id in ids %}`）が $O(n)$ の線形時間ではなく $O(1)$ の定数時間で実行されることを保証します。
 - **依存関係の管理:** `core`、`catalog`、`transactions` アプリ間の循環参照を防ぐため、メソッド内でのローカルインポートを採用しました。
+</aside>
+
+## 2. UI コンポーネント戦略（モジュール型フォームとレイアウト）
+
+<aside>
+### 2.1. 目的：デザインの一貫性と開発スピードの向上
+全てのアプリで高品質かつプロフェッショナルな UI を維持しつつ、開発スピードを最大化するため、テンプレートのモジュール化を採用しました。
+
+### 2.2. 二段階のフォームコンポーネント設計
+フォームの表示ロジックを2つの粒度に分割しました：
+- **`_form_field.html` (最小単位):** 単一の入力フィールド（ラベル、必須マーク、Bootstrap 5 のバリデーション状態、ヘルプテキスト）の描画を担当します。これにより、フィールドが単純に縦に並ばないカスタムレイアウトにも対応可能になります。
+- **`_form.html` (構成単位):** フォームの枠組み、CSRF トークン、フォーム全体のエラー、アクションボタンを担当します。標準的なフォームではループ内で `_form_field.html` を呼び出しますが、複雑なレイアウトが必要な場合は個別にフィールドを配置することも可能です。
+
+### 2.3. 認証系のためのレイアウト継承
+ログイン、ユーザー登録、パスワード変更などの「単一目的で集中が必要な画面」のために `centered_card.html` を導入しました。これにより、一貫したユーザー体験を提供し、あらゆるエントリーポイントでのレスポンシブデザイン対応を簡略化しています。
 </aside>

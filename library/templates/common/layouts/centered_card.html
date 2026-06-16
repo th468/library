@@ -1,19 +1,23 @@
 {% extends "common/base.html" %}
 
 {% block content %}
-<div class="container">
+<div class="container py-5">
     <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
-        
-        <div class="col-md-{{ md_col_size|default:"6" }} col-lg-{{ lg_col_size|default:"4" }}">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h2 class="h4 text-center mb-4">{% block title %}{% endblock %}</h2>
-                    
+        <div class="col-12 col-sm-10 col-md-{{ md_col_size|default:"8" }} col-lg-{{ lg_col_size|default:"5" }} col-xl-{{ xl_col_size|default:"4" }}">
+            <div class="card shadow border-0 rounded-4 {{ card_class }}">
+                <div class="card-body p-4 p-md-5">
+                    {% block card_header %}
+                        <div class="text-center mb-4">
+                            <h2 class="h3 fw-bold text-primary">{% block card_title %}{% endblock %}</h2>
+                            <hr class="w-25 mx-auto border-2 border-primary opacity-75">
+                        </div>
+                    {% endblock %}
+
                     {% block card_content %}{% endblock %}
                 </div>
             </div>
-            
-            <div class="text-center mt-3">
+
+            <div class="text-center mt-4">
                 {% block card_footer %}{% endblock %}
             </div>
         </div>

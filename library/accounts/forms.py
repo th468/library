@@ -1,48 +1,57 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth.forms import (
+    UserCreationForm as DjangoUserCreationForm, 
+    UsernameField,
+    AuthenticationForm
+)
 from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
 
-# 登録、管理用
-class UserCreationForm(forms.ModelForm):
-    password1 = forms.CharField(label="パスワード", widget=forms.PasswordInput)
-    password2 = forms.CharField(label="パスワード(確認)", widget=forms.PasswordInput)
-
+class UserCreationForm(DjangoUserCreationForm):
+    """
+    ユーザー登録用フォーム
+    カスタムユーザーモデルに対応
+    """
     class Meta:
         model = User
         fields = ("em_num", "email")
+        field_classes = {"email": UsernameField}
 
-    def clean(self):
-        cleaned_data = super().clean()
-        if cleaned_data is None:
-            return None
-        password1 = cleaned_data.get("password1")
-        password2 = cleaned_data.get("password2")
-        if password1 != password2:
-            raise ValidationError("パスワードが一致しません")
-        return cleaned_data
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        password = self.cleaned_data.get("password1") if self.cleaned_data else None
-        if password:
-            user.set_password(password)
-        user.save()
-        return user
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("このメールアドレスは既に登録されています。")
+        return email
 
 
-class UserChangeForm(forms.ModelForm):
-    password = ReadOnlyPasswordHashField(label="パスワード")
-
+class ProfileEditForm(forms.ModelForm):
+    """
+    プロフィール編集用フォーム
+    """
     class Meta:
         model = User
-        fields = ("em_num", "email", "password", "is_active", "is_staff", "is_superuser")
+        fields = ("name", "department")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "department" in self.fields:
+            self.fields["department"].empty_label = "部署を選択してください"
 
 
-# ログイン用
-class UserLoginForm(forms.Form):
-    email = forms.EmailField(label="メールアドレス", max_length=255)
-    password = forms.CharField(label="パスワード", widget=forms.PasswordInput)
+class UserLoginForm(AuthenticationForm):
+    """
+    ログイン用フォーム
+    Django標準のLoginViewに適合させるためAuthenticationFormを継承
+    """
+    username = forms.EmailField(
+        label="メールアドレス",
+        max_length=255,
+        widget=forms.EmailInput(attrs={"placeholder": "example@company.com", "autofocus": True})
+    )
+    password = forms.CharField(
+        label="パスワード",
+        widget=forms.PasswordInput(attrs={"placeholder": "パスワードを入力"})
+    )

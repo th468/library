@@ -1,10 +1,19 @@
 {% extends "common/layouts/centered_card.html" %}
 
-{% block title %}利用者登録{% endblock %}
+{% block title %}ユーザー登録 | Library{% endblock %}
 
-{% block content  %}
-{% include "common/includes/_form.html" %}
-{% endblock  %}
+{% block card_title %}ユーザー登録{% endblock %}
 
+{% block card_content %}
+    <p class="text-muted text-center mb-4 small">
+        必要事項を入力して、新しいアカウントを作成してください。
+    </p>
+    {% include "common/includes/_form.html" with btn_text="登録する" btn_icon="bi-person-plus" %}
+{% endblock %}
 
-
+{% block card_footer %}
+    <p class="text-muted small">
+        既にアカウントをお持ちですか？ 
+        <a href="{% url 'accounts:login' %}" class="text-primary text-decoration-none fw-bold">ログイン</a>
+    </p>
+{% endblock %}

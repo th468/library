@@ -1,0 +1,57 @@
+{% extends "common/base.html" %}
+
+{% block title %}プロフィール | Library{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white py-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px;">
+                            <i class="bi bi-person-fill" style="font-size: 2rem;"></i>
+                        </div>
+                        <div>
+                            <h2 class="h4 mb-0 fw-bold">{{ profile_user.name|default:"氏名未設定" }}</h2>
+                            <p class="mb-0 opacity-75">{{ profile_user.email }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="h5 mb-4 border-bottom pb-2">基本情報</h3>
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-sm-6">
+                            <label class="text-muted small d-block mb-1">社員番号</label>
+                            <p class="fs-5 fw-medium mb-0">{{ profile_user.em_num }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small d-block mb-1">部署</label>
+                            <p class="fs-5 fw-medium mb-0">{{ profile_user.department.name|default:"未所属" }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small d-block mb-1">貸出上限</label>
+                            <p class="fs-5 fw-medium mb-0 text-primary">{{ profile_user.lending_limit }} 冊</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small d-block mb-1">貸出可能期間</label>
+                            <p class="fs-5 fw-medium mb-0">{{ profile_user.lending_period_days }} 日</p>
+                        </div>
+                    </div>
+
+                    <h3 class="h5 mb-4 border-bottom pb-2">アカウント設定</h3>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil-square me-1"></i> プロフィール編集
+                        </a>
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-key me-1"></i> パスワード変更
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

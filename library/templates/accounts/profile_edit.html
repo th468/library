@@ -1,0 +1,9 @@
+{% extends "common/layouts/centered_card.html" %}
+
+{% block title %}プロフィール編集 | Library{% endblock %}
+
+{% block card_title %}プロフィール編集{% endblock %}
+
+{% block card_content %}
+    {% include "common/includes/_form.html" with btn_text="更新する" btn_icon="bi-save" cancel_url=profile_url %}
+{% endblock %}
