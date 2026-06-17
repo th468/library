@@ -114,7 +114,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
             return lending
 
     # 貸出期間延長機能
-    def renew(self, lending, user, days=14):
+    def renew(self, lending, user):
         with transaction.atomic():
             lending, book = self._get_locked_lending_and_book(lending.pk)
 
@@ -122,21 +122,23 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
             if lending.user != user and not user.is_staff:
                 raise ValidationError("ログインユーザーはこの本を貸出していません。")
 
-            if lending.status != self.model.Status.LENDING:
-                raise ValidationError("貸出中以外のレコードは延長できません。")
+            if not lending.can_renew:
+                # can_renew のロジックに基づいた適切なメッセージを返す
+                if lending.is_overdue:
+                    raise ValidationError("期限が過ぎている本は延長できません。一度返却してください。")
+                
+                new_due_date = timezone.now().date() + timedelta(days=user.lending_period_days)
+                if new_due_date <= lending.due_date:
+                    raise ValidationError("これ以上延長することはできません。")
 
-            if lending.is_overdue:
-                raise ValidationError("期限が過ぎている本は延長できません。一度返却してください。")
+                from .models import Reservation
+                if Reservation.objects.waiting().filter(biblio=book.biblio).exists():
+                    raise ValidationError("この本には次に予約が入っているため、延長できません。")
+                
+                raise ValidationError("現在は延長手続きを行うことができません。")
 
-            # 予約の有無を確認
-            from .models import Reservation
-
-            has_waiting_reservation = Reservation.objects.waiting().filter(biblio=book.biblio).exists()
-
-            if has_waiting_reservation:
-                raise ValidationError("この本には次に予約が入っているため、延長できません。")
-            # 期間の更新
-            lending.due_date += timedelta(days=days)
+            # 期間の更新（今日を起点にユーザーの貸出可能期間をセットする）
+            lending.due_date = timezone.now().date() + timedelta(days=user.lending_period_days)
             lending.save(update_fields=["due_date", "updated_at"])
 
             return lending
@@ -177,6 +179,32 @@ class Lending(BaseModel):
     @property
     def is_overdue(self):
         return self.status == self.Status.LENDING and self.due_date < timezone.now().date()
+
+    @property
+    def can_renew(self):
+        """
+        延長が可能かどうかを判定する。
+        - 貸出中であること
+        - 延滞していないこと
+        - 延長によって返却期限が延びる状態であること（貸出直後の無意味な延長を防止）
+        - 次の予約が入っていないこと
+        """
+        if self.status != self.Status.LENDING:
+            return False
+        if self.is_overdue:
+            return False
+        
+        # 延長後の日付が現在の期限より先であることを確認
+        new_due_date = timezone.now().date() + timedelta(days=self.user.lending_period_days)
+        if new_due_date <= self.due_date:
+            return False
+        
+        from .models import Reservation
+        # この書誌を待っている「入荷待ち」の予約があるかチェック
+        if Reservation.objects.waiting().filter(biblio=self.book.biblio).exists():
+            return False
+        
+        return True
 
     @property
     def days_overdue(self):

@@ -74,9 +74,24 @@ class LendingManagerTest(TestCase):
     def test_renew_success(self):
         """renew: 正常に期間が延長されるか"""
         lending = Lending.objects.lend(self.book, self.user)
+        # 1日経過したと仮定して期限を1日前にずらす（これで延長が可能になる）
+        lending.due_date -= timedelta(days=1)
+        lending.save()
+
         original_due = lending.due_date
-        renewed = Lending.objects.renew(lending, self.user, days=7)
-        self.assertEqual(renewed.due_date, original_due + timedelta(days=7))
+        renewed = Lending.objects.renew(lending, self.user)
+        
+        # 今日を起点に14日後に更新されているか
+        expected_due = timezone.now().date() + timedelta(days=self.user.lending_period_days)
+        self.assertEqual(renewed.due_date, expected_due)
+        self.assertGreater(renewed.due_date, original_due)
+
+    def test_renew_fail_too_early(self):
+        """renew: 期限が延びない状態での延長は失敗するか（連打防止）"""
+        lending = Lending.objects.lend(self.book, self.user)
+        # 貸出直後は今日+14日が期限なので、延長しても期限が変わらない
+        with self.assertRaisesRegex(ValidationError, "これ以上延長することはできません"):
+            Lending.objects.renew(lending, self.user)
 
 
 class LendingModelTest(TestCase, BaseModelTestMixin):
