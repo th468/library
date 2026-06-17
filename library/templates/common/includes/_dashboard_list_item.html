@@ -14,19 +14,27 @@
         <div class="flex-grow-1 overflow-hidden me-3">
             {% if type == 'lending' %}
                 <h4 class="h6 mb-1 text-dark text-truncate">{{ object.book.biblio.title }}</h4>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-x-3 gap-y-1">
                     <small class="{% if object.is_overdue %}text-danger fw-bold{% else %}text-muted{% endif %}">
                         <i class="bi bi-clock-history"></i> 返却期限: {{ object.due_date|date:"Y/m/d" }}
                         {% if object.is_overdue %}(延滞中){% endif %}
                     </small>
+                    <small class="text-primary fw-bold">
+                        <i class="bi bi-geo-alt-fill"></i> {{ object.book.shelf.floor.name }} / {{ object.book.shelf.name }}
+                    </small>
                 </div>
             {% elif type == 'reservation' %}
                 <h4 class="h6 mb-1 text-dark text-truncate">{{ object.biblio.title }}</h4>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-x-3 gap-y-1">
                     <small class="text-muted"><i class="bi bi-calendar-event"></i> 予約日: {{ object.created_at|date:"Y/m/d" }}</small>
                     <span class="badge extra-small {% if object.status == 2 %}bg-success-subtle text-success border border-success-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %}">
                         {{ object.get_status_display }}
                     </span>
+                    {% if object.status == 2 %}
+                    <small class="text-info fw-bold">
+                        <i class="bi bi-geo-alt-fill"></i> {{ object.book.shelf.floor.name }} / {{ object.book.shelf.name }}
+                    </small>
+                    {% endif %}
                 </div>
             {% elif type == 'history' %}
                 <h4 class="h6 mb-1 text-dark text-truncate">{{ object.book.biblio.title }}</h4>

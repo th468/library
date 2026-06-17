@@ -16,7 +16,10 @@
         <div class="card h-100">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h3 class="h5 mb-0 text-primary">現在借りている本</h3>
-                <span class="badge rounded-pill bg-primary">{{ user.active_lending_count }}冊</span>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge rounded-pill bg-primary">{{ user.active_lending_count }}冊</span>
+                    <a href="{% url 'dashboard:lending_list' %}" class="small text-decoration-none">すべて見る &raquo;</a>
+                </div>
             </div>
             <div class="card-body">
                 {% if user.active_lendings %}
@@ -40,7 +43,10 @@
         <div class="card h-100">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h3 class="h5 mb-0 text-primary">予約状況</h3>
-                <span class="badge rounded-pill bg-info">{{ user.active_reservations.count }}件</span>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge rounded-pill bg-info">{{ user.active_reservations.count }}件</span>
+                    <a href="{% url 'dashboard:reservation_list' %}" class="small text-decoration-none">すべて見る &raquo;</a>
+                </div>
             </div>
             <div class="card-body">
                 {% if user.active_reservations %}
@@ -89,6 +95,7 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="h5 mb-0 text-primary">お気に入りの本</h3>
+            <a href="{% url 'dashboard:favorite_list' %}" class="small text-decoration-none">すべて見る &raquo;</a>
         </div>
     </div>
     {% if favorite_biblios %}

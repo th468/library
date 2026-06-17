@@ -1,0 +1,48 @@
+{% extends "common/base.html" %}
+{% load core_tags %}
+
+{% block title %}{{ page_title }} | Library{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-end border-bottom pb-2">
+            <h2 class="h3 mb-0">{{ page_title }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">マイページ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">貸出中一覧</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                {% if lending_list %}
+                <div class="list-group list-group-flush">
+                    {% for lending in lending_list %}
+                        {% include "common/includes/_dashboard_list_item.html" with object=lending type="lending" user=user %}
+                    {% endfor %}
+                </div>
+                
+                {# ページネーション #}
+                <div class="pt-4">
+                    {% include "common/includes/_pagination.html" with page_obj=page_obj %}
+                </div>
+                
+                {% else %}
+                <div class="text-center my-5">
+                    <i class="bi bi-book-half text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3">現在借りている本はありません。</p>
+                    <a href="{% url 'catalog:booklist' %}" class="btn btn-primary rounded-pill mt-2 px-4">本を探しにいく</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

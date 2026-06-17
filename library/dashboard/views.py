@@ -52,3 +52,39 @@ class LendingHistoryView(LoginRequiredMixin, PageTitleMixin, ListView):
             .select_related("book__biblio")
             .order_by("-return_date")
         )
+
+class LendingListView(LoginRequiredMixin, LibStatusMixin, PageTitleMixin, ListView):
+    """
+    貸出中書籍の全件表示
+    """
+    template_name = "dashboard/lending_list.html"
+    context_object_name = "lending_list"
+    paginate_by = 10
+    page_title = "貸出中の書籍"
+
+    def get_queryset(self):
+        return self.request.user.active_lendings
+
+class ReservationListView(LoginRequiredMixin, LibStatusMixin, PageTitleMixin, ListView):
+    """
+    予約中書籍の全件表示
+    """
+    template_name = "dashboard/reservation_list.html"
+    context_object_name = "reservation_list"
+    paginate_by = 10
+    page_title = "予約中の書籍"
+
+    def get_queryset(self):
+        return self.request.user.active_reservations
+
+class FavoriteListView(LoginRequiredMixin, LibStatusMixin, PageTitleMixin, ListView):
+    """
+    お気に入り書籍の全件表示
+    """
+    template_name = "dashboard/favorite_list.html"
+    context_object_name = "favorite_list"
+    paginate_by = 15
+    page_title = "お気に入りリスト"
+
+    def get_queryset(self):
+        return self.request.user.favorite_biblios
