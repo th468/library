@@ -18,7 +18,8 @@ class LendActionView(LoginRequiredMixin, View):
             request.session["reveal_mode"] = "lend"
             messages.success(request, f"「{book.biblio.title}」の貸出手続きが完了しました。")
         except ValidationError as e:
-            messages.error(request, e.message)
+            for message in e.messages:
+                messages.error(request, message)
 
         # Book ID ではなく Biblio ID でリダイレクト
         return redirect(reverse("catalog:bookdetail", kwargs={"pk": book.biblio.pk}))
@@ -33,7 +34,8 @@ class ReserveActionView(LoginRequiredMixin, View):
             request.session["reveal_mode"] = "reserve"
             messages.success(request, f"「{book.biblio.title}」を予約しました。")
         except ValidationError as e:
-            messages.error(request, e.message)
+            for message in e.messages:
+                messages.error(request, message)
 
         # Book ID ではなく Biblio ID でリダイレクト
         return redirect(reverse("catalog:bookdetail", kwargs={"pk": book.biblio.pk}))
@@ -48,7 +50,8 @@ class CollectActionView(LoginRequiredMixin, View):
             Lending.objects.collect(lending, request.user)
             messages.success(request, "返却が完了しました。")
         except ValidationError as e:
-            messages.error(request, e.message)
+            for message in e.messages:
+                messages.error(request, message)
         return redirect("dashboard:index")
 
 
@@ -61,7 +64,8 @@ class RenewActionView(LoginRequiredMixin, View):
             Lending.objects.renew(lending, request.user)
             messages.success(request, "貸出期間を延長しました。")
         except ValidationError as e:
-            messages.error(request, e.message)
+            for message in e.messages:
+                messages.error(request, message)
         return redirect("dashboard:index")
 
 
@@ -75,6 +79,7 @@ class ReservationCancelActionView(LoginRequiredMixin, View):
             Reservation.objects.cancel_reservation(reservation, remark="ユーザーによるキャンセル")
             messages.success(request, f"「{reservation.biblio.title}」の予約を取り消しました。")
         except ValidationError as e:
-            messages.error(request, e.message)
+            for message in e.messages:
+                messages.error(request, message)
 
         return redirect("dashboard:index")
