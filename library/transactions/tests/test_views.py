@@ -152,10 +152,15 @@ class TransactionViewsTest(TestCase):
 
     def test_renew_action_success(self):
         """正常な貸出延長"""
-        lending = LendingFactory(user=self.user, book=self.book)
+        from datetime import timedelta
+        from django.utils import timezone
+        # 期限を明日に設定（延滞しておらず、かつ延長によって期限が延びる状態）
+        tomorrow = timezone.now().date() + timedelta(days=1)
+        lending = LendingFactory(user=self.user, book=self.book, due_date=tomorrow)
         old_due_date = lending.due_date
 
         self.client.login(email="user@example.com", password="password123")
+
         url = reverse("transactions:renew", kwargs={"pk": self.book.pk})
         
         response = self.client.post(url)
