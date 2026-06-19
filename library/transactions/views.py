@@ -1,7 +1,7 @@
 from catalog.models import Book
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views import View
@@ -45,7 +45,9 @@ class ReserveActionView(LoginRequiredMixin, View):
 class CollectActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
         # テンプレートからは Book ID が渡されるため、その本のアクティブな貸出を探す
-        lending = get_object_or_404(Lending.objects.ongoing(), book__pk=pk, user=request.user)
+        lending = get_object_or_404(Lending.objects.ongoing(), book__pk=pk)
+        if lending.user != request.user:
+            raise PermissionDenied("この貸出データを操作する権限がありません。")
         try:
             Lending.objects.collect(lending, request.user)
             messages.success(request, "返却が完了しました。")
@@ -59,7 +61,9 @@ class CollectActionView(LoginRequiredMixin, View):
 class RenewActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
         # テンプレートからは Book ID が渡されることを想定し、その本のアクティブな貸出を探す
-        lending = get_object_or_404(Lending.objects.ongoing(), book__pk=pk, user=request.user)
+        lending = get_object_or_404(Lending.objects.ongoing(), book__pk=pk)
+        if lending.user != request.user:
+            raise PermissionDenied("この貸出データを操作する権限がありません。")
         try:
             Lending.objects.renew(lending, request.user)
             messages.success(request, "貸出期間を延長しました。")
@@ -74,7 +78,9 @@ class ReservationCancelActionView(LoginRequiredMixin, View):
     def post(self, request, pk):
         from .models import Reservation
 
-        reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
+        reservation = get_object_or_404(Reservation, pk=pk)
+        if reservation.user != request.user:
+            raise PermissionDenied("この予約データを操作する権限がありません。")
         try:
             Reservation.objects.cancel_reservation(reservation, remark="ユーザーによるキャンセル")
             messages.success(request, f"「{reservation.biblio.title}」の予約を取り消しました。")

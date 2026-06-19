@@ -139,3 +139,36 @@ class UserAccountViewsTest(TestCase):
         # 新しいパスワードでログインできるか確認
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password("newpass45678"))
+
+    def test_password_change_fail_wrong_old_password(self):
+        """パスワード変更失敗：古いパスワードが間違っている場合"""
+        self.client.login(email="test@example.com", password="password123")
+        response = self.client.post(reverse("accounts:password_change"), {
+            "old_password": "wrongpassword",
+            "new_password1": "newpass45678",
+            "new_password2": "newpass45678"
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context["form"], "old_password", "元のパスワードが間違っています。もう一度入力してください。")
+
+    def test_password_change_fail_mismatched_new_passwords(self):
+        """パスワード変更失敗：新しいパスワード（確認用）が一致しない場合"""
+        self.client.login(email="test@example.com", password="password123")
+        response = self.client.post(reverse("accounts:password_change"), {
+            "old_password": "password123",
+            "new_password1": "newpass45678",
+            "new_password2": "mismatch45678"
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context["form"], "new_password2", "確認用パスワードが一致しません。")
+
+    def test_password_change_fail_weak_password(self):
+        """パスワード変更失敗：脆弱な（短すぎる）パスワードの場合"""
+        self.client.login(email="test@example.com", password="password123")
+        response = self.client.post(reverse("accounts:password_change"), {
+            "old_password": "password123",
+            "new_password1": "123",
+            "new_password2": "123"
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "短すぎます")

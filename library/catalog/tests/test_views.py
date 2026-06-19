@@ -104,3 +104,38 @@ class BookViewsTest(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Favorite.objects.filter(user=self.user, biblio=self.biblio, is_active=True).exists())
+
+    def test_biblio_search_list_excludes_inactive_biblios(self):
+        """論理削除された蔵書が検索一覧から除外されているか"""
+        inactive_biblio = BiblioFactory(title="削除済みの本")
+        inactive_biblio.is_active = False
+        inactive_biblio.save()
+
+        response = self.client.get(reverse('catalog:booklist'))
+        self.assertEqual(response.status_code, 200)
+        biblios = response.context['biblios']
+        self.assertNotIn(inactive_biblio, biblios)
+
+    def test_biblio_detail_view_404_for_inactive_biblio(self):
+        """論理削除された蔵書の詳細画面は404エラーを返すか"""
+        self.client.login(email="user@example.com", password="password123")
+        inactive_biblio = BiblioFactory(title="削除済みの本")
+        inactive_biblio.is_active = False
+        inactive_biblio.save()
+
+        url = reverse('catalog:bookdetail', kwargs={'pk': inactive_biblio.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_biblio_detail_view_excludes_inactive_books(self):
+        """論理削除された書籍在庫が詳細画面の在庫一覧に表示されないか"""
+        self.client.login(email="user@example.com", password="password123")
+        inactive_book = BookFactory(biblio=self.biblio, shelf=self.shelf)
+        inactive_book.is_active = False
+        inactive_book.save()
+
+        response = self.client.get(reverse('catalog:bookdetail', kwargs={'pk': self.biblio.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f"No.{self.book.count}")
+        self.assertNotContains(response, f"No.{inactive_book.count}")
+

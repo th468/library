@@ -191,3 +191,43 @@ class TransactionViewsTest(TestCase):
         
         messages = self._get_messages(response)
         self.assertIn(f"「{self.biblio.title}」の予約を取り消しました。", messages)
+
+    # --- 6. 権限チェック (403 Forbidden) ---
+
+    def test_collect_action_forbidden_for_other_user(self):
+        """他ユーザーの貸出に対する返却リクエストが403になるか"""
+        other_user = User.objects.create_user(email="other@example.com", em_num="O001", password="pass")
+        LendingFactory(user=other_user, book=self.book)
+        self.book.status = self.book.Status.LENT
+        self.book.save()
+
+        self.client.login(email="user@example.com", password="password123")
+        url = reverse("transactions:collect", kwargs={"pk": self.book.pk})
+        
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_renew_action_forbidden_for_other_user(self):
+        """他ユーザーの貸出に対する延長リクエストが403になるか"""
+        other_user = User.objects.create_user(email="other_renew@example.com", em_num="O002", password="pass")
+        from datetime import timedelta
+        from django.utils import timezone
+        tomorrow = timezone.now().date() + timedelta(days=1)
+        LendingFactory(user=other_user, book=self.book, due_date=tomorrow)
+
+        self.client.login(email="user@example.com", password="password123")
+        url = reverse("transactions:renew", kwargs={"pk": self.book.pk})
+        
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_reservation_cancel_action_forbidden_for_other_user(self):
+        """他ユーザーの予約に対するキャンセルリクエストが403になるか"""
+        other_user = User.objects.create_user(email="other_res@example.com", em_num="O003", password="pass")
+        reservation = ReservationFactory(user=other_user, biblio=self.biblio)
+
+        self.client.login(email="user@example.com", password="password123")
+        url = reverse("transactions:reserve_cancel", kwargs={"pk": reservation.pk})
+        
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 403)
