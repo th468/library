@@ -31,8 +31,8 @@
                 </button>
             </form>
         {% endwith %}
-    {% elif book.can_be_lent %}
-        <!-- 貸出可能な場合：今すぐ借りるボタン -->
+    {% elif book.status == 1 or book.id in user_ready_book_ids %}
+        <!-- 貸出可能な場合（在庫あり、または自分の予約引き当て済み）：今すぐ借りるボタン -->
         <form action="{% url 'transactions:lend' book.pk %}" method="post" onsubmit="return confirm('この本を借りますか？\n※すぐに受け取りに行く必要があります。');">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">

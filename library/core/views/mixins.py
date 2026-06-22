@@ -117,9 +117,12 @@ class ReservationContextMixin:
             from transactions.models import Reservation
 
             reservation_ids = set(Reservation.objects.ongoing().filter(user=user).values_list("biblio_id", flat=True))
+            ready_book_ids = set(Reservation.objects.ready_for_pickup().filter(user=user).values_list("book_id", flat=True))
         else:
             reservation_ids = set()
+            ready_book_ids = set()
         context["user_reservation_ids"] = reservation_ids
+        context["user_ready_book_ids"] = ready_book_ids
         return context
 
 

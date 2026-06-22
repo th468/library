@@ -116,26 +116,7 @@ class BookModelTest(TestCase, BaseModelTestMixin):
             book2.save()
 
     # ② 個別テスト項目
-    def test_can_be_lent_logic(self):
-        """正常系 → 異常系: statusに応じたcan_be_lentの挙動テスト"""
-        # モデルクラスをFactoryから取得
-        model_class = self.factory_class._meta.model
 
-        # 正常系: 在庫あり
-        book_available = BookFactory(status=model_class.Status.AVAILABLE)
-        self.assertTrue(book_available.can_be_lent)
-
-        # 異常系: 貸出中
-        book_lent = BookFactory(status=model_class.Status.LENT)
-        self.assertFalse(book_lent.can_be_lent)
-
-        # 異常系: メンテナンス中
-        book_maint = BookFactory(status=model_class.Status.MAINTENANCE)
-        self.assertFalse(book_maint.can_be_lent)
-
-        # 異常系: 紛失
-        book_lost = BookFactory(status=model_class.Status.LOST)
-        self.assertFalse(book_lost.can_be_lent)
 
     def test_can_be_reserved_logic(self):
         """正常系 → 異常系: statusに応じたcan_be_reservedの挙動テスト"""
@@ -149,6 +130,43 @@ class BookModelTest(TestCase, BaseModelTestMixin):
         # 異常系: メンテナンス中・紛失は予約対象外
         self.assertFalse(BookFactory(status=model_class.Status.MAINTENANCE).can_be_reserved)
         self.assertFalse(BookFactory(status=model_class.Status.LOST).can_be_reserved)
+
+    def test_can_be_lent_to_logic(self):
+        """statusおよび予約状況に応じたcan_be_lent_toの挙動テスト"""
+        from accounts.factories import UserFactory
+        from transactions.models import Reservation
+        from transactions.factories import ReservationFactory
+        Book = self.factory_class._meta.model
+
+        user1 = UserFactory()
+        user2 = UserFactory()
+
+        # 1. AVAILABLE（在庫あり）: 誰でも貸出可能
+        book_available = BookFactory(status=Book.Status.AVAILABLE)
+        self.assertTrue(book_available.can_be_lent_to(user1))
+        self.assertTrue(book_available.can_be_lent_to(user2))
+        self.assertTrue(book_available.can_be_lent_to(None))
+
+        # 2. LENT（貸出中）: 誰に対しても貸出不可
+        book_lent = BookFactory(status=Book.Status.LENT)
+        self.assertFalse(book_lent.can_be_lent_to(user1))
+        self.assertFalse(book_lent.can_be_lent_to(user2))
+        self.assertFalse(book_lent.can_be_lent_to(None))
+
+        # 3. RESERVED（予約中）: 
+        book_reserved = BookFactory(status=Book.Status.RESERVED)
+        
+        # 3a. 自身向けの READY (準備完了) 予約が存在する場合のみ貸出可能
+        res1 = ReservationFactory(user=user1, book=book_reserved, status=2)  # READY
+        self.assertTrue(book_reserved.can_be_lent_to(user1))
+        # 3b. 他人向けの予約なので貸出不可
+        self.assertFalse(book_reserved.can_be_lent_to(user2))
+        self.assertFalse(book_reserved.can_be_lent_to(None))
+
+        # 3c. 予約が存在しても WAITING (入荷待ち) などの状態であれば貸出不可
+        res1.status = 1  # WAITING
+        res1.save()
+        self.assertFalse(book_reserved.can_be_lent_to(user1))
 
     def test_save_auto_increment_count(self):
         """saveメソッドによるcountの自動採番テスト"""

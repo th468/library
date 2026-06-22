@@ -76,6 +76,7 @@ class BookViewsTest(TestCase):
         self.assertIn('user_favorite_ids', detail_res.context)
         self.assertIn('user_lent_book_ids', detail_res.context)
         self.assertIn(self.book.id, detail_res.context['user_lent_book_ids'])
+        self.assertIn('user_ready_book_ids', detail_res.context)
 
     def test_lib_status_anonymous_user(self):
         """未ログイン時でも、context に空のセットが含まれ、エラーにならないか"""
@@ -84,6 +85,7 @@ class BookViewsTest(TestCase):
         self.assertEqual(response.context['user_favorite_ids'], set())
         self.assertEqual(response.context['user_lending_ids'], set())
         self.assertEqual(response.context['user_lent_book_ids'], set())
+        self.assertEqual(response.context['user_ready_book_ids'], set())
 
     def test_favorite_toggle_re_enable_logic(self):
         """お気に入りの登録・解除・再登録が正常に動作するか（論理削除の考慮）"""

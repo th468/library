@@ -99,9 +99,17 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
     # def get_absolute_url(self):
     #     return reverse("catalog:bookdetail", kwargs={"pk": self.pk})
 
-    @property
-    def can_be_lent(self):
-        return self.status == self.Status.AVAILABLE
+
+
+    def can_be_lent_to(self, user):
+        """指定されたユーザーがこの書籍を貸出可能か判定する"""
+        if self.status == self.Status.AVAILABLE:
+            return True
+        if self.status == self.Status.RESERVED:
+            if user and user.is_authenticated:
+                from transactions.models import Reservation
+                return Reservation.objects.ready_for_pickup().filter(book=self, user=user).exists()
+        return False
 
     @property
     def can_be_reserved(self):
