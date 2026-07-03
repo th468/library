@@ -75,3 +75,127 @@ We introduced `centered_card.html` as a specialized layout for focused, single-p
 ### 2.3. 認証系のためのレイアウト継承
 ログイン、ユーザー登録、パスワード変更などの「単一目的で集中が必要な画面」のために `centered_card.html` を導入しました。これにより、一貫したユーザー体験を提供し、あらゆるエントリーポイントでのレスポンシブデザイン対応を簡略化しています。
 </aside>
+
+
+### 2.1. ER図
+
+全 10 モデルのリレーションを示します。`Reservation.book` が点線（null 許容）である点に注目してください。予約時点では「どの個体を渡すか」は未確定であり、実際に返却が来て初めて特定の `Book` が引き当てられます（`mark_as_ready`）。
+
+```mermaid
+erDiagram
+    %% --- accounts アプリ ---
+    User {
+        int     id              PK
+        string  em_num          UK "社員番号"
+        string  email           UK "メールアドレス"
+        bool    is_active           "有効フラグ"
+        bool    is_staff            "管理者フラグ"
+        int     lending_limit       "貸出上限冊数"
+        int     lending_period_days "貸出可能日数"
+        string  name                "氏名"
+        int     department_id   FK
+        datetime created_at
+        datetime updated_at
+    }
+    Department {
+        int     id   PK
+        string  name "部署名"
+        bool    is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% --- catalog アプリ ---
+    Biblio {
+        int     id            PK
+        string  isbn          UK
+        string  title
+        string  author
+        string  publisher
+        string  published_date
+        text    description
+        image   cover
+        bool    is_active
+        datetime created_at
+        datetime updated_at
+    }
+    Category {
+        int    id   PK
+        string name UK
+        bool   is_active
+    }
+    Book {
+        int id          PK
+        int biblio_id   FK
+        int shelf_id    FK
+        int count           "管理番号（同一書誌内通し番号）"
+        int status          "1:在庫あり 2:貸出中 3:予約中 4:ﾒﾝﾃﾅﾝｽ 5:紛失"
+        bool is_active
+        datetime created_at
+        datetime updated_at
+    }
+    Shelf {
+        int   id       PK
+        int   floor_id FK
+        string name
+        text  description
+        image location_photo
+        bool  is_active
+    }
+    Floor {
+        int   id  PK
+        string name
+        image map
+        bool  is_active
+    }
+    Favorite {
+        int id       PK
+        int user_id  FK
+        int biblio_id FK
+        bool is_active
+        datetime created_at
+    }
+
+    %% --- transactions アプリ ---
+    Lending {
+        int  id          PK
+        int  user_id     FK
+        int  book_id     FK
+        date due_date       "返却期限"
+        date return_date    "返却日（null=貸出中）"
+        int  status         "1:貸出中 2:返却済み 3:その他"
+        bool is_active
+        datetime created_at
+        datetime updated_at
+    }
+    Reservation {
+        int  id             PK
+        int  user_id        FK
+        int  biblio_id      FK
+        int  book_id        FK "null許容: 準備完了後に引き当て"
+        int  status             "1:入荷待ち 2:準備完了 3:貸出済み 4:ｷｬﾝｾﾙ 5:期限切れ"
+        date reserved_until     "取置期限（READY 後にセット）"
+        bool is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% --- リレーション定義 ---
+    User        }o--o|  Department  : "所属"
+    User        ||--o{  Lending     : "借りる"
+    User        ||--o{  Reservation : "予約する"
+    User        ||--o{  Favorite    : "お気に入り登録"
+
+    Biblio      }o--o{  Category    : "分類される（M2M）"
+    Biblio      ||--o{  Book        : "実体を持つ"
+    Biblio      ||--o{  Reservation : "予約される"
+    Biblio      ||--o{  Favorite    : "お気に入りされる"
+
+    Book        }o--||  Shelf       : "配架される"
+    Book        ||--o{  Lending     : "貸し出される"
+    Book        ||--o{  Reservation : "取置される（null許容）"
+
+    Shelf       }o--||  Floor       : "属するフロア"
+```
+
+---

@@ -96,9 +96,6 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
             return f"【現物】{self.biblio.title} (No.{self.count})"
         return super().__str__()
 
-    # def get_absolute_url(self):
-    #     return reverse("catalog:bookdetail", kwargs={"pk": self.pk})
-
 
 
     def can_be_lent_to(self, user):

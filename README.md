@@ -3,28 +3,21 @@
 [![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-6.0.2-092E20?style=flat-square&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![Code_Style](https://img.shields.io/badge/Code__Style-Ruff-black?style=flat-square)](https://github.com/astral-sh/ruff)
-[![Type_Check](https://img.shields.io/badge/Type__Check-mypy-blue?style=flat-square)](https://github.com/python/mypy)
 [![Database](https://img.shields.io/badge/Database-SQLite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org/)
 
 本システムは、広大なオフィスや研究施設内に分散配置された15,000冊・20フロアにおよぶ書籍を効率的に管理するための、Django製分散型図書管理アプリケーションのプロトタイプです。
 
 ---
 
-## 1. プロジェクトの背景と独自のUX制約（本棚位置情報の秘匿）
+## 1. プロジェクトの背景と課題
 
-一般的な図書システムとは異なり、本システムには以下の実務的課題に基づく独自のビジネスロジックが組み込まれています。
+このプロジェクトは、アプリケーション開発の一連の流れを学習することを目的として、架空の企業からの依頼を想定し、作成したものです。
 
-*   **課題**: 多数 of フロアや棚に分散した蔵書環境において、書籍の具体的な保管場所を事前に全員へ公開すると、システムを通さない**「記録なしの持ち出し（未記録の持出）」**が発生し、データ整合性が破綻する原因になります。
-*   **解決策（UX制約）**: 
-    書籍の具体的な保管位置（フロア・棚番号など）は、**「貸出確定」または「予約確定」のトランザクションが成立したユーザーに対してのみ開示**されます。検索・ブラウズ段階では保管場所を秘匿し、不正持ち出しを防ぐと同時にシステムのデータ整合性を担保します。
+*   **課題**:多数のフロアや棚に分散した蔵書を活用したいが、専用のスペースや人員を用意する余裕がない。
 
-```mermaid
-graph TD
-    User([ユーザー]) -->|書籍を検索・ブラウズ| Search[書籍詳細画面: 位置情報は非公開]
-    Search -->|貸出 / 予約手続きを申請| Trans[ステータス確定トランザクション]
-    Trans -->|確定完了| Success[完了画面 / マイページ]
-    Success -->|初めて位置情報を開示| Reveal["保管場所: 20階 A-3棚"]
-```
+*   **解決策**: ウェブアプリケーション上で書籍の表示、検索機能を実装することで、物理的には分散させたまま、必要な書籍へのアクセスを可能にする。  
+また、アプリケーション内で貸出、返却機能を実装することで、利用者の端末のみで貸し借りのサイクルを完結させ、司書の常駐を不要とした。
+
 
 ---
 
@@ -237,7 +230,7 @@ stateDiagram-v2
 
 *   **言語/フレームワーク**: Python 3.14 / Django 6.0.2
 *   **フロントエンド**: HTML5 / Vanilla CSS / Bootstrap 5 / django-widget-tweaks
-*   **静的解析・品質保証**: Ruff (Linter & Formatter) / mypy (厳格型チェック)
+*   **静的解析・品質保証**: Ruff (Linter & Formatter) 
 *   **データベース**: SQLite3
 *   **テスト・シードデータ**: factory_boy / Faker
 
@@ -289,10 +282,6 @@ python library/manage.py runserver
 *   **コードの整形・静的解析 (Linter / Formatter)**:
     ```bash
     ruff check .
-    ```
-*   **型チェックの実行**:
-    ```bash
-    mypy .
     ```
 
 ---
