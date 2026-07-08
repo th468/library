@@ -2,23 +2,23 @@
 {# 在庫（Book）アクションボタン・コンポーネント #}
 {# 引数: book (Book), user (User) #}
 
-<div class="d-flex justify-content-center gap-2">
+<div class="d-flex justify-content-center gap-1 gap-sm-2">
     {% if book.id in user_lent_book_ids %}
         {% with lending=user_lendings|get_item:book.id %}
             <!-- 延長ボタン -->
             {% if lending.is_overdue %}
-                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled title="延滞中のため延長できません">
-                    延長不可
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 px-sm-3" disabled title="延滞中のため延長できません">
+                    <i class="bi bi-calendar-x"></i> <span class="d-none d-sm-inline">延長不可</span>
                 </button>
             {% elif book.biblio.id in biblios_with_reservations %}
-                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled title="次に予約が入っているため延長できません">
-                    延長不可
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 px-sm-3" disabled title="次に予約が入っているため延長できません">
+                    <i class="bi bi-calendar-x"></i> <span class="d-none d-sm-inline">延長不可</span>
                 </button>
             {% else %}
                 <form action="{% url 'transactions:renew' book.pk %}" method="post" onsubmit="return confirm('貸出期間を14日間延長しますか？');">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                        <i class="bi bi-calendar-plus"></i> 延長
+                    <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-2 px-sm-3">
+                        <i class="bi bi-calendar-plus"></i> <span class="d-none d-sm-inline">延長</span>
                     </button>
                 </form>
             {% endif %}
@@ -26,8 +26,8 @@
             <!-- 返却ボタン -->
             <form action="{% url 'transactions:collect' book.pk %}" method="post" onsubmit="return confirm('この本を返却しますか？');">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success btn-sm rounded-pill px-4">
-                    <i class="bi bi-arrow-return-left"></i> 返却
+                <button type="submit" class="btn btn-success btn-sm rounded-pill px-2 px-sm-3">
+                    <i class="bi bi-arrow-return-left"></i> <span class="d-none d-sm-inline">返却</span>
                 </button>
             </form>
         {% endwith %}
@@ -35,8 +35,8 @@
         <!-- 貸出可能な場合（在庫あり、または自分の予約引き当て済み）：今すぐ借りるボタン -->
         <form action="{% url 'transactions:lend' book.pk %}" method="post" onsubmit="return confirm('この本を借りますか？\n※すぐに受け取りに行く必要があります。');">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">
-                今すぐ借りる
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-2 px-sm-3 shadow-sm">
+                <i class="bi bi-book-half"></i> <span class="d-none d-sm-inline">今すぐ借りる</span>
             </button>
         </form>
     {% else %}

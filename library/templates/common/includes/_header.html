@@ -33,6 +33,31 @@
 
             <!-- ユーザーメニュー -->
             <ul class="navbar-nav ms-auto align-items-center">
+                <!-- テーマ切り替えドロップダウン -->
+                <li class="nav-item dropdown me-2">
+                    <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center text-light opacity-75 hover-opacity-100" id="themeDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-palette2"></i>
+                        <span class="d-lg-none ms-2">テーマ切り替え</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="themeDropdown">
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center" data-theme-value="classic">
+                                <i class="bi bi-journal-bookmark-fill me-2 text-primary"></i> クラシック（知的）
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center" data-theme-value="modern">
+                                <i class="bi bi-cpu-fill me-2 text-success"></i> モダン（テック）
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center" data-theme-value="dark">
+                                <i class="bi bi-moon-stars-fill me-2 text-warning"></i> ダーク（夜間）
+                            </button>
+                        </li>
+                    </ul>
+                </li>
+
                 {% if user.is_authenticated %}
                     <li class="nav-item me-3">
                         <a class="nav-link p-0 {% active_link 'accounts:profile_detail' %}" href="{% url 'accounts:profile_detail' %}">

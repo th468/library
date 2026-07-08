@@ -1,21 +1,52 @@
 /* Library Global Style Sheet */
 
-:root {
+:root, [data-theme="classic"] {
     /* カラーパレット（パターンA：知的・クラシック） */
     --lib-primary: #1a2a6c;   /* Library Navy: 誠実、知性 */
     --lib-accent: #b8860b;    /* Book Gold: 価値、特別感 */
     --lib-bg: #fdfcf0;        /* Ivory Paper: 紙の質感、目に優しい */
     --lib-text: #2c3e50;      /* Ink Black: 読みやすさ重視 */
-    --lib-white: #ffffff;
+    --lib-white: #ffffff;     /* コンテンツのベース背景 */
+    --lib-bg-alt: #f8f9fa;    /* サブ背景（テーブルヘッダーや入力欄） */
+    --lib-border: rgba(0, 0, 0, 0.125);
+    --lib-text-muted: #6c757d;
     --lib-card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* 基本タイポグラフィ */
+[data-theme="modern"] {
+    /* カラーパレット（パターンB：モダン・テック・グリーン） */
+    --lib-primary: #0f4c5c;   /* Deep Teal: 知的で落ち着いた深緑 */
+    --lib-accent: #e36414;    /* Terracotta Gold: 目を引くアクセントオレンジ */
+    --lib-bg: #f4f6f6;        /* Light Ash: スッキリとしたライトグレー */
+    --lib-text: #1d2d30;      /* Dark Charcoal: 視認性の高い墨色 */
+    --lib-white: #ffffff;
+    --lib-bg-alt: #eaeded;
+    --lib-border: rgba(15, 76, 92, 0.15);
+    --lib-text-muted: #5a6b6d;
+    --lib-card-shadow: 0 4px 12px rgba(15, 76, 92, 0.08);
+}
+
+[data-theme="dark"] {
+    /* カラーパレット（パターンC：サイバー・インテリジェンス・ダーク） */
+    --lib-primary: #8b5cf6;   /* Neon Violet: 先進性を醸し出すバイオレット */
+    --lib-accent: #10b981;    /* Emerald Green: 鮮やかなグリーン */
+    --lib-bg: #0f172a;        /* Midnight Blue: 目の疲労を抑える暗青 */
+    --lib-text: #f3f4f6;      /* Cool Gray: 読みやすい明度のグレー */
+    --lib-white: #1e293b;     /* Card Background: カード背景用の暗色 */
+    --lib-bg-alt: #334155;    /* Input/Table Header Background */
+    --lib-border: rgba(255, 255, 255, 0.15);
+    --lib-text-muted: #9ca3af;
+    --lib-card-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 基本タイポグラフィ（表示密度の向上） */
 body {
     font-family: 'Noto Sans JP', sans-serif;
     background-color: var(--lib-bg);
     color: var(--lib-text);
-    line-height: 1.6;
+    font-size: 0.9rem; /* デフォルトの1remから縮小 */
+    line-height: 1.5;  /* 行高を1.6から1.5に縮小 */
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6, .navbar-brand {
@@ -23,14 +54,32 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     font-weight: 700;
 }
 
+h1 { font-size: 2rem; }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.3rem; }
+
+/* コンテナ幅の拡張 */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1320px;
+    }
+}
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1520px;
+    }
+}
+
 /* Bootstrap カスタマイズ：ナビゲーション */
 .navbar {
     background-color: var(--lib-primary) !important;
     border-bottom: 3px solid var(--lib-accent);
+    padding-top: 0.5rem !important;  /* ナビの余白もタイトに調整 */
+    padding-bottom: 0.5rem !important;
 }
 
 .navbar-brand {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     letter-spacing: 0.05em;
 }
 
@@ -38,12 +87,13 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .btn-primary {
     background-color: var(--lib-primary);
     border-color: var(--lib-primary);
-    padding: 0.5rem 1.5rem;
+    padding: 0.4rem 1.2rem;
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    background-color: #0d1a4a;
+    background-color: var(--lib-primary);
+    filter: brightness(1.2);
     border-color: var(--lib-accent);
     transform: translateY(-1px);
 }
@@ -52,24 +102,69 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     color: var(--lib-primary);
     border-color: var(--lib-primary);
 }
+.btn-outline-primary:hover {
+    background-color: var(--lib-primary);
+    border-color: var(--lib-primary);
+}
 
 /* カードのデザイン */
 .card {
-    border: none;
+    border: 1px solid var(--lib-border);
     border-radius: 8px;
     box-shadow: var(--lib-card-shadow);
     background-color: var(--lib-white);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px); /* 控えめなホバーに変更 */
 }
 
 /* フォームの調整 */
-.form-control:focus {
+.form-control, .form-select {
+    background-color: var(--lib-white);
+    color: var(--lib-text);
+    border-color: var(--lib-border);
+    font-size: 0.9rem;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--lib-white);
+    color: var(--lib-text);
     border-color: var(--lib-primary);
     box-shadow: 0 0 0 0.25rem rgba(26, 42, 108, 0.1);
+}
+
+/* テーマ連動ユーティリティのオーバーライド */
+.bg-light {
+    background-color: var(--lib-bg-alt) !important;
+    transition: background-color 0.3s ease;
+}
+
+.text-muted {
+    color: var(--lib-text-muted) !important;
+}
+
+.border {
+    border-color: var(--lib-border) !important;
+}
+
+.border-bottom {
+    border-bottom-color: var(--lib-border) !important;
+}
+
+/* テーブルスタイル調整 */
+.table {
+    color: var(--lib-text) !important;
+}
+.table th {
+    background-color: var(--lib-bg-alt) !important;
+    color: var(--lib-text) !important;
+    border-bottom: 2px solid var(--lib-border) !important;
+}
+.table td {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--lib-border) !important;
 }
 
 /* お気に入りボタンのアイコン切り替え */

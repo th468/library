@@ -46,19 +46,27 @@
         </div>
 
         {# 右側：アクションボタン #}
-        <div class="d-flex gap-2 align-items-center flex-shrink-0">
+        <div class="d-flex gap-1 gap-sm-2 align-items-center flex-shrink-0">
             {% if type == 'lending' %}
                 {# 在庫に対するアクションボタン（返却/延長） #}
                 {% include "common/includes/_action_buttons.html" with book=object.book user=user %}
-                <a href="{% url 'catalog:bookdetail' object.book.biblio.pk %}" class="btn btn-sm btn-outline-primary px-3 rounded-pill">詳細</a>
+                <a href="{% url 'catalog:bookdetail' object.book.biblio.pk %}" class="btn btn-sm btn-outline-primary px-2 px-sm-3 rounded-pill">
+                    <i class="bi bi-info-circle"></i> <span class="d-none d-sm-inline">詳細</span>
+                </a>
             {% elif type == 'reservation' %}
                 <form action="{% url 'transactions:reserve_cancel' object.pk %}" method="post" onsubmit="return confirm('予約を取り消しますか？');" class="d-inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill">取消</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger px-2 px-sm-3 rounded-pill">
+                        <i class="bi bi-x-circle"></i> <span class="d-none d-sm-inline">取消</span>
+                    </button>
                 </form>
-                <a href="{% url 'catalog:bookdetail' object.biblio.pk %}" class="btn btn-sm btn-outline-primary px-3 rounded-pill">詳細</a>
+                <a href="{% url 'catalog:bookdetail' object.biblio.pk %}" class="btn btn-sm btn-outline-primary px-2 px-sm-3 rounded-pill">
+                    <i class="bi bi-info-circle"></i> <span class="d-none d-sm-inline">詳細</span>
+                </a>
             {% elif type == 'history' %}
-                <a href="{% url 'catalog:bookdetail' object.book.biblio.pk %}" class="btn btn-sm btn-outline-primary px-4 rounded-pill">もう一度借りる</a>
+                <a href="{% url 'catalog:bookdetail' object.book.biblio.pk %}" class="btn btn-sm btn-outline-primary px-2 px-sm-4 rounded-pill">
+                    <i class="bi bi-arrow-repeat"></i> <span class="d-none d-sm-inline">もう一度借りる</span>
+                </a>
             {% endif %}
         </div>
     </div>
