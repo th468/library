@@ -4,7 +4,7 @@
 [![Code_Style](https://img.shields.io/badge/Code__Style-Ruff-black?style=flat-square)](https://github.com/astral-sh/ruff)
 [![Database](https://img.shields.io/badge/Database-SQLite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org/)
 
-# Decentral Library - 分散型図書管理システム
+# DecenLib - 分散型図書管理システム
 
 ## 概要
 オフィス内などで分散する書籍をローコストで有効活用する、分散型図書館Webアプリケーション

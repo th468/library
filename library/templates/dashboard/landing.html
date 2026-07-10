@@ -1,7 +1,7 @@
 {% extends "common/base.html" %}
 {% load static %}
 
-{% block title %}Library | ビル全体を、ひとつの巨大な図書館へ。{% endblock %}
+{% block title %}DecenLib | ビル全体を、ひとつの巨大な図書館へ。{% endblock %}
 
 {% block content %}
 <!-- 1. ヒーローセクション -->
@@ -11,11 +11,11 @@
             ビル全体を、ひとつの巨大な図書館へ。
         </h1>
         <p class="lead text-muted mb-4">
-            Library（ライブラリー）は、オフィス内に分散した15,000冊の蔵書をデジタルでつなぐ、新しい社内図書プラットフォームです。
+            DecenLib（ディセンリブ）は、オフィス内に分散したの蔵書をデジタルでつなぐ、新しい社内図書プラットフォームです。
         </p>
         <div class="d-grid gap-3 d-md-flex">
             <a href="{% url 'accounts:regist' %}" class="btn btn-primary btn-lg px-4 rounded-pill shadow">
-                今すぐ参加する
+                利用登録
             </a>
             <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg px-4 rounded-pill">
                 ログイン
@@ -33,29 +33,11 @@
     </div>
 </div>
 
-<!-- 2. 実績・特徴セクション -->
-<div class="row g-4 py-5 border-top">
-    <div class="col-md-4 text-center">
-        <div class="display-5 fw-bold text-primary mb-2">15,000+</div>
-        <p class="h6 text-muted">蔵書タイトル数</p>
-        <small class="text-secondary">あらゆるジャンルの知識が集結</small>
-    </div>
-    <div class="col-md-4 text-center border-start border-end">
-        <div class="display-5 fw-bold text-primary mb-2">20</div>
-        <p class="h6 text-muted">網羅フロア数</p>
-        <small class="text-secondary">あなたのすぐ側に「本」があります</small>
-    </div>
-    <div class="col-md-4 text-center">
-        <div class="display-5 fw-bold text-primary mb-2">4,000+</div>
-        <p class="h6 text-muted">アクティブユーザー</p>
-        <small class="text-secondary">知の共有が、ここから始まる</small>
-    </div>
-</div>
 
 <!-- 3. 使い方のステップ -->
 <div class="row py-5 mt-5">
     <div class="col-12 text-center mb-5">
-        <h2 class="fw-bold">Library の使い方</h2>
+        <h2 class="fw-bold">DecenLib の使い方</h2>
         <p class="text-muted">本との出会いを、もっと身近に、もっと楽しく。</p>
     </div>
     <div class="col-md-4 mb-4">
@@ -73,7 +55,7 @@
                 <i class="bi bi-calendar-check text-primary h2 mb-0"></i>
             </div>
             <h3 class="h5 fw-bold">2. 予約する</h3>
-            <p class="small text-muted mb-0">借りたい本が決まったら、ボタン一つで手続き完了。貸出中の場合は、予約待ちリストへ並べます。</p>
+            <p class="small text-muted mb-0">借りたい本が決まったら、ボタン一つで貸出手続き完了。貸出中の場合は、予約待ちリストへ並べます。</p>
         </div>
     </div>
     <div class="col-md-4 mb-4">
@@ -82,20 +64,12 @@
                 <i class="bi bi-geo-alt-fill text-primary h2 mb-0"></i>
             </div>
             <h3 class="h5 fw-bold">3. 受け取る</h3>
-            <p class="small text-muted mb-0">予約が確定すると、本がある「正確な場所」をご案内。あとはその場所へ取りに行くだけです。</p>
+            <p class="small text-muted mb-0">貸出を確定すると、本がある本棚をご案内。あとはその場所へ取りに行くだけです。</p>
         </div>
     </div>
 </div>
 
-<!-- 4. CTA（最終誘導） -->
-<div class="row py-5 mt-5 bg-primary text-white rounded-4 shadow text-center">
-    <div class="col-12 py-4">
-        <h2 class="mb-4">さっそく、社内の知にアクセスしましょう。</h2>
-        <a href="{% url 'accounts:regist' %}" class="btn btn-light btn-lg text-primary fw-bold px-5 rounded-pill shadow-sm transition-hover">
-            今すぐ新規登録（無料）
-        </a>
-    </div>
-</div>
+
 
 <style>
     .transition-hover {
