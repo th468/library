@@ -4,13 +4,19 @@
 [![Code_Style](https://img.shields.io/badge/Code__Style-Ruff-black?style=flat-square)](https://github.com/astral-sh/ruff)
 [![Database](https://img.shields.io/badge/Database-SQLite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org/)
 
+<br/>
+
 # DecenLib - 分散型図書管理システム
 
-## 概要
-オフィス内などで分散する書籍をローコストで有効活用する、分散型図書館Webアプリケーション
+<br/>
 
-<img width="2400" height="1350" alt="ダッシュボード" src="https://github.com/user-attachments/assets/8f59ed48-6290-4d47-841d-bda34f6a7e97" />
+DecenLibは、オフィス内などで分散する書籍をローコストで有効活用する、分散型図書館Webアプリケーションです。
 
+<br/>
+
+<img width="1907" height="692" alt="トップ画像" src="https://github.com/user-attachments/assets/8eed48eb-74f6-403d-a10f-9325452ca0f5" />
+
+<br/>
 
 ## URL
 
@@ -18,7 +24,7 @@
 
 テスト用ログインユーザー情報：（）
 
----
+<br/>
 
 ## プロジェクトの背景と課題
 
@@ -29,8 +35,7 @@
 *   **解決策**: ウェブアプリケーション上で書籍の表示、検索機能を実装することで、物理的には分散させたまま、必要な書籍へのアクセスを可能にする。  
 また、アプリケーション内で貸出、返却機能を実装することで、利用者の端末のみで貸し借りのサイクルを完結させ、司書の常駐を不要とした。
 
-
----
+<br/>
 
 ## アプリケーションのイメージ
 
@@ -44,12 +49,12 @@
 |<img width="2400" height="1350" alt="ダッシュボード" src="https://github.com/user-attachments/assets/8f59ed48-6290-4d47-841d-bda34f6a7e97" /> |<img width="2400" height="1350" alt="書籍詳細" src="https://github.com/user-attachments/assets/c98dbc2d-c58e-4263-a4fd-2d6a2e9e454c" />|
 |  |  |
 
-| 書籍一覧 |　ユーザーページ |
+| 書籍一覧 |　ユーザープロフィール |
 | ---- | ---- |
-| <img width="2400" height="1350" alt="書籍一覧" src="https://github.com/user-attachments/assets/3332454d-9da6-4cfe-8a60-92144f9bcdc2" /> | <img width="2400" height="1350" alt="書籍詳細" src="https://github.com/user-attachments/assets/c98dbc2d-c58e-4263-a4fd-2d6a2e9e454c" />|
+| <img width="2400" height="1350" alt="書籍一覧" src="https://github.com/user-attachments/assets/3332454d-9da6-4cfe-8a60-92144f9bcdc2" /> |<img width="2400" height="1350" alt="ユーザープロフィール" src="https://github.com/user-attachments/assets/5741ae11-5ab6-41f4-bd24-e08df6a85c09" />|
 |  |  |
 
----
+<br/>
 
 ##  技術的ハイライト & アーキテクチャ設計
 
@@ -57,26 +62,28 @@
 
 ### 1. Basemodelクラスの継承によって、論理削除等の基本機能を全モデル共通実装
 
-django標準のmodels.modelを継承したBasemodelクラス及び
+django標準のmodels.modelを継承したBasemodelクラス及びBaseManagerクラスを作成し、一部を除く全てのモデルに継承することで、基本的な挙動を統一させた。
+Basemodelは論理削除に関わるis_activeフィールドやdeleteメソッドの他、strメソッドなどを有している。
 
-### 2. データーの取得を、ビューが継承したmixinによって行うことでN＋１問題を解決
-
+### 2. データの取得を、ビューが継承したmixinによって行うことでN＋１問題を解決
 
 ### 3. 実在の書籍と書誌情報の分離
 
 ### 4.書誌情報に対して予約を作成し、その後実在書籍に引き当てるロジック構築
 
-##  将来の拡張ロードマップ (TODO)
+<br/>
 
-本プロジェクトは以下の機能拡張を将来の課題として想定しています。
+##  将来の拡張ロードマップ
+
+本プロジェクトは発展途上であり、以下のアップデートを予定しています。
 
 1.  **通知システム**: 予約書籍の準備完了通知や返却期限警告の自動通知機能。
 2.  **外部API連携**: Google Books API等と連携し、ISBN入力による書籍情報の自動取得。
-3.  **非同期UXの向上**: `htmx` を用いた「お気に入り登録」や「貸出申請」の非同期 (Ajax) 通信化。
+3.  **非同期通信実装によるUXの向上**: `htmx` を用いた「お気に入り登録」や「貸出申請」の非同期 (Ajax) 通信化。
 4.  **E2Eテスト作成**: praywright等を用いたE2Eテストの作成。
 
 
-
+<br/>
 
 ##  技術スタック
 
@@ -86,7 +93,6 @@ django標準のmodels.modelを継承したBasemodelクラス及び
 *   **データベース**: SQLite3
 *   **テスト・シードデータ**: factory_boy / Faker
 
----
 
 
 
@@ -130,8 +136,6 @@ erDiagram
         string  author
         string  publisher
         string  published_date
-        text    description
-        image   cover
         bool    is_active
         datetime created_at
         datetime updated_at
@@ -216,7 +220,6 @@ erDiagram
 ```
 
 
----
 
 
 
@@ -254,8 +257,6 @@ python library/seed_data.py
 python library/manage.py runserver
 ```
 起動後、ブラウザで `http://127.0.0.1:8000/` にアクセスして動作を確認します。
-
----
 
 ###  品質保証 & テスト実行
 
