@@ -9,8 +9,8 @@
 ## 概要
 オフィス内などで分散する書籍をローコストで有効活用する、分散型図書館Webアプリケーション
 
-（Gif、画像）
----
+<img width="2400" height="1350" alt="ダッシュボード" src="https://github.com/user-attachments/assets/8f59ed48-6290-4d47-841d-bda34f6a7e97" />
+
 
 ## URL
 
@@ -29,6 +29,25 @@
 *   **解決策**: ウェブアプリケーション上で書籍の表示、検索機能を実装することで、物理的には分散させたまま、必要な書籍へのアクセスを可能にする。  
 また、アプリケーション内で貸出、返却機能を実装することで、利用者の端末のみで貸し借りのサイクルを完結させ、司書の常駐を不要とした。
 
+
+---
+
+## アプリケーションのイメージ
+
+| トップ画面 |　ログイン画面 |
+| ---- | ---- |
+| <img width="2400" height="1350" alt="イントロダクション" src="https://github.com/user-attachments/assets/5d3e9786-3bc3-4921-ad70-bcebe25c4838" /> | <img width="2400" height="1350" alt="ログイン" src="https://github.com/user-attachments/assets/4e1f49cf-5804-48de-b794-a2a4c97a403b" />|
+|  |  |
+
+| ダッシュボード |　書籍詳細 |
+| ---- | ---- |
+|<img width="2400" height="1350" alt="ダッシュボード" src="https://github.com/user-attachments/assets/8f59ed48-6290-4d47-841d-bda34f6a7e97" /> |<img width="2400" height="1350" alt="書籍詳細" src="https://github.com/user-attachments/assets/c98dbc2d-c58e-4263-a4fd-2d6a2e9e454c" />|
+|  |  |
+
+| 書籍一覧 |　ユーザーページ |
+| ---- | ---- |
+| <img width="2400" height="1350" alt="書籍一覧" src="https://github.com/user-attachments/assets/3332454d-9da6-4cfe-8a60-92144f9bcdc2" /> | <img width="2400" height="1350" alt="書籍詳細" src="https://github.com/user-attachments/assets/c98dbc2d-c58e-4263-a4fd-2d6a2e9e454c" />|
+|  |  |
 
 ---
 
@@ -77,7 +96,7 @@ django標準のmodels.modelを継承したBasemodelクラス及び
 
 ### 2.1. ER図
 
-全 10 モデルのリレーションを示します。`Reservation.book` が点線（null 許容）である点に注目してください。予約時点では「どの個体を渡すか」は未確定であり、実際に返却が来て初めて特定の `Book` が引き当てられます（`mark_as_ready`）。
+全 10 モデルのリレーションを示します。
 
 ```mermaid
 erDiagram
