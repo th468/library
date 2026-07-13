@@ -1,11 +1,13 @@
 from django.contrib import admin
 
+from core.admin import BaseLogicalDeleteAdmin
+
 from .models import Biblio, Book, Category, Favorite, Floor, Shelf
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "created_at", "is_active")
+class CategoryAdmin(BaseLogicalDeleteAdmin):
+    list_display = ("name", "is_active_display", "created_at")
     search_fields = ("name",)
     readonly_fields = ("created_at", "updated_at")
 
@@ -24,9 +26,9 @@ class BookInline(admin.TabularInline):
 
 
 @admin.register(Biblio)
-class BiblioAdmin(admin.ModelAdmin):
-    list_display = ("title", "author", "isbn", "total_count", "available_count", "is_active")
-    list_filter = ("categories", "is_active")
+class BiblioAdmin(BaseLogicalDeleteAdmin):
+    list_display = ("title", "author", "isbn", "total_count", "available_count", "is_active_display")
+    list_filter = (*BaseLogicalDeleteAdmin.list_filter, "categories")
     search_fields = ("title", "author", "isbn")
     inlines = [BookInline]
     ordering = ("title",)
@@ -34,9 +36,9 @@ class BiblioAdmin(admin.ModelAdmin):
 
 
 @admin.register(Book)
-class BookAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "count", "biblio_title", "shelf", "status", "is_active")
-    list_filter = ("status", "shelf__floor", "is_active")
+class BookAdmin(BaseLogicalDeleteAdmin):
+    list_display = ("__str__", "count", "biblio_title", "shelf", "status", "is_active_display")
+    list_filter = (*BaseLogicalDeleteAdmin.list_filter, "status", "shelf__floor")
     search_fields = ("biblio__title", "biblio__isbn")
     readonly_fields = ("count", "created_at", "updated_at")
     # N+1問題の解消: biblio と shelf(→floor) を先読み
@@ -48,22 +50,22 @@ class BookAdmin(admin.ModelAdmin):
 
 
 @admin.register(Shelf)
-class ShelfAdmin(admin.ModelAdmin):
-    list_display = ("name", "floor", "is_active")
-    list_filter = ("floor",)
+class ShelfAdmin(BaseLogicalDeleteAdmin):
+    list_display = ("name", "floor", "is_active_display")
+    list_filter = (*BaseLogicalDeleteAdmin.list_filter, "floor")
     readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(Floor)
-class FloorAdmin(admin.ModelAdmin):
-    list_display = ("name", "is_active")
+class FloorAdmin(BaseLogicalDeleteAdmin):
+    list_display = ("name", "is_active_display")
     readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(Favorite)
-class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ("user", "biblio", "is_active")
-    list_filter = ("is_active",)
+class FavoriteAdmin(BaseLogicalDeleteAdmin):
+    list_display = ("user", "biblio", "is_active_display")
+    list_filter = (*BaseLogicalDeleteAdmin.list_filter,)
     search_fields = ("user__email", "biblio__title")
     readonly_fields = ("created_at", "updated_at")
     list_select_related = ("user", "biblio")
