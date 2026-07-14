@@ -33,7 +33,14 @@ class BaseLogicalDeleteAdmin(admin.ModelAdmin):
 
     # 1. 管理画面では「削除済み」も含めて表示する
     def get_queryset(self, request):
-        return self.model.all_objects.get_queryset()
+        # all_objects を使い is_active=False のレコードも取得する。
+        # super() は objects（active()フィルタ済み）を使うため直接呼べないが、
+        # ordering は自前で適用して ModelAdmin の動作を維持する。
+        qs = self.model.all_objects.get_queryset()
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
 
     # 2. 個別削除ボタンを「論理削除」に書き換え
     def delete_model(self, request, obj):
@@ -60,7 +67,7 @@ class BaseLogicalDeleteAdmin(admin.ModelAdmin):
         updated_count = queryset.update(is_active=True)
         self.message_user(request, f"{updated_count} 件のデータを復元しました。")
 
-    # 6. 見た目の工夫：削除済みを赤文字にする
+    # 6. ステータスを ✅/❌ アイコンで表示する
     @admin.display(description="ステータス", boolean=True)
     def is_active_display(self, obj):
         return obj.is_active

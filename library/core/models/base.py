@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from .mixins import RenameUniqueFieldsMixin
 
@@ -7,8 +8,10 @@ class BaseQuerySet(models.QuerySet):
     """プロジェクト共通のクエリ操作"""
 
     def delete(self):
-        """バルク削除 (queryset.delete()) を論理削除に書き換え"""
-        return super().update(is_active=False)
+        """バルク削除 (queryset.delete()) を論理削除に書き換え。
+        update() は auto_now=True をトリガーしないため、updated_at を明示的に渡す。
+        """
+        return super().update(is_active=False, updated_at=timezone.now())
 
     def hard_delete(self):
         """物理削除を行いたい場合に使用"""
