@@ -4,5 +4,6 @@ django-environ==0.13.0
 django-widget-tweaks==1.5.1
 factory_boy==3.3.3
 Faker==40.15.0
+pillow==12.2.0
 sqlparse==0.5.5
 tzdata==2025.3
