@@ -16,11 +16,11 @@ jobs:
     steps:
     # ステップ 1: GitHubのリポジトリからソースコードを仮想環境にコピー（ダウンロード）します
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     # ステップ 2: 仮想環境にPythonをインストールします
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.13' # プロジェクトのバージョンに合わせてPython 3.13を使用
         cache: 'pip'          # ライブラリのダウンロードを高速化するためのキャッシュ設定
