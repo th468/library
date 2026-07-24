@@ -15,6 +15,7 @@ from .models import Biblio, Favorite, Shelf
 
 # region __公開用ビュー（ユーザー向け）__
 
+
 # #蔵書検索一覧
 class BiblioSearchListView(LibStatusMixin, PageTitleMixin, SearchMixin, ListView):
     model = Biblio
@@ -44,6 +45,7 @@ class BiblioSearchListView(LibStatusMixin, PageTitleMixin, SearchMixin, ListView
         category_name = ""
         if category_id:
             from .models import Category
+
             category = Category.objects.filter(id=category_id).first()
             if category:
                 category_name = category.name
@@ -59,11 +61,12 @@ class BiblioSearchListView(LibStatusMixin, PageTitleMixin, SearchMixin, ListView
             title = self.page_title
 
         # 件数の追加 (Paginationにかかわらず全件数を表示)
-        if hasattr(self, 'object_list'):
+        if hasattr(self, "object_list"):
             count = self.get_queryset().count()
             title += f" ({count}件)"
 
         return title
+
 
 # #蔵書詳細
 class BiblioDetailView(LoginRequiredMixin, LibStatusMixin, PageTitleMixin, DetailView):
@@ -101,15 +104,11 @@ class ShelfDetailView(LoginRequiredMixin, PageTitleMixin, DetailView):
         user = request.user
 
         has_active_lending = Lending.objects.filter(
-            user=user,
-            book__shelf=self.object,
-            status=Lending.Status.LENDING
+            user=user, book__shelf=self.object, status=Lending.Status.LENDING
         ).exists()
 
         has_active_reservation = Reservation.objects.filter(
-            user=user,
-            book__shelf=self.object,
-            status=Reservation.Status.READY
+            user=user, book__shelf=self.object, status=Reservation.Status.READY
         ).exists()
 
         if not (has_active_lending or has_active_reservation):
@@ -153,12 +152,15 @@ class FavoriteToggleView(LoginRequiredMixin, View):
 
 # region __管理用ビュー（スタッフ向け）__
 
+
 class ManageIndexView(StaffManagerMixin, PageTitleMixin, TemplateView):
     """
     管理者用ポータル画面
     ここから Django Admin や、将来的な高度な統計画面へ誘導する
     """
+
     template_name = "catalog/manage_index.html"
     page_title = "管理業務メニュー"
+
 
 # endregion

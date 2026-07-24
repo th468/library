@@ -39,9 +39,12 @@ class UserAdmin(DjangoUserAdmin):
     )
     # 新規作成画面のフィールドセット
     add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("email", "em_num", "name", "department", "password1", "password2"),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "em_num", "name", "department", "password1", "password2"),
+            },
+        ),
     )
     readonly_fields = ("created_at", "updated_at", "last_login")

@@ -116,15 +116,9 @@ class ReservationContextMixin:
         if user.is_authenticated:
             from transactions.models import Reservation
 
-            reservation_ids = set(
-                Reservation.objects.ongoing()
-                .filter(user=user)
-                .values_list("biblio_id", flat=True)
-            )
+            reservation_ids = set(Reservation.objects.ongoing().filter(user=user).values_list("biblio_id", flat=True))
             ready_book_ids = set(
-                Reservation.objects.ready_for_pickup()
-                .filter(user=user)
-                .values_list("book_id", flat=True)
+                Reservation.objects.ready_for_pickup().filter(user=user).values_list("book_id", flat=True)
             )
         else:
             reservation_ids = set()

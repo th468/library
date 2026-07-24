@@ -6,10 +6,12 @@ from accounts.forms import ProfileEditForm, UserCreationForm, UserLoginForm
 
 User = get_user_model()
 
+
 class UserCreationFormTest(TestCase):
     """
     ユーザー登録フォーム (UserCreationForm) のテスト
     """
+
     def test_form_valid_data(self):
         """有効なデータでのバリデーション成功"""
         form_data = {
@@ -51,6 +53,7 @@ class ProfileEditFormTest(TestCase):
     """
     プロフィール編集フォーム (ProfileEditForm) のテスト
     """
+
     def setUp(self):
         self.department = DepartmentFactory(name="開発部")
 
@@ -73,6 +76,7 @@ class UserLoginFormTest(TestCase):
     """
     ログインフォーム (UserLoginForm) のテスト
     """
+
     def test_form_widget_attributes(self):
         """ウィジェットの属性（placeholder等）が正しく設定されているか"""
         form = UserLoginForm()

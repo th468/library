@@ -98,22 +98,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def lending_history(self):
         """自身の過去の貸出履歴（返却済みのもの、新しい順）"""
-        return (
-            self.lending_set.returned()
-            .select_related("book__biblio")
-            .order_by("-return_date")
-        )
+        return self.lending_set.returned().select_related("book__biblio").order_by("-return_date")
 
     @property
     def favorite_biblios(self):
         """自身がお気に入り登録した書誌一覧を取得"""
         from catalog.models import Biblio
-        return Biblio.objects.filter(favorite__user=self).order_by("-favorite__created_at")
 
+        return Biblio.objects.filter(favorite__user=self).order_by("-favorite__created_at")
 
     class Meta:
         verbose_name = "ユーザー"
         verbose_name_plural = "ユーザー"
+
+
 ...
 
 

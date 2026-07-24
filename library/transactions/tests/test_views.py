@@ -16,11 +16,7 @@ class TransactionViewsTest(TestCase):
     """
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            email="user@example.com",
-            em_num="U001",
-            password="password123"
-        )
+        self.user = User.objects.create_user(email="user@example.com", em_num="U001", password="password123")
         self.biblio = BiblioFactory(title="テスト本")
         self.book = BookFactory(biblio=self.biblio)
 
@@ -93,11 +89,7 @@ class TransactionViewsTest(TestCase):
 
         # 延滞中の貸出を作る
         overdue_book = BookFactory()
-        LendingFactory(
-            user=self.user,
-            book=overdue_book,
-            due_date=timezone.now().date() - timedelta(days=1)
-        )
+        LendingFactory(user=self.user, book=overdue_book, due_date=timezone.now().date() - timedelta(days=1))
 
         self.client.login(email="user@example.com", password="password123")
         url = reverse("transactions:lend", kwargs={"pk": self.book.pk})
@@ -156,6 +148,7 @@ class TransactionViewsTest(TestCase):
         from datetime import timedelta
 
         from django.utils import timezone
+
         # 期限を明日に設定（延滞しておらず、かつ延長によって期限が延びる状態）
         tomorrow = timezone.now().date() + timedelta(days=1)
         lending = LendingFactory(user=self.user, book=self.book, due_date=tomorrow)
@@ -215,6 +208,7 @@ class TransactionViewsTest(TestCase):
         from datetime import timedelta
 
         from django.utils import timezone
+
         tomorrow = timezone.now().date() + timedelta(days=1)
         LendingFactory(user=other_user, book=self.book, due_date=tomorrow)
 

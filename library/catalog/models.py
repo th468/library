@@ -8,7 +8,6 @@ from django.urls import reverse
 class Category(BaseModel):
     name = models.CharField(max_length=255, unique=True, verbose_name="カテゴリ名")
 
-
     class Meta:
         verbose_name_plural = "カテゴリ情報"
 
@@ -96,8 +95,6 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
             return f"【現物】{self.biblio.title} (No.{self.count})"
         return super().__str__()
 
-
-
     def can_be_lent_to(self, user):
         """指定されたユーザーがこの書籍を貸出可能か判定する"""
         if self.status == self.Status.AVAILABLE:
@@ -105,6 +102,7 @@ class Book(BaseModel, RenameUniqueFieldsMixin):
         if self.status == self.Status.RESERVED:
             if user and user.is_authenticated:
                 from transactions.models import Reservation
+
                 return Reservation.objects.ready_for_pickup().filter(book=self, user=user).exists()
         return False
 

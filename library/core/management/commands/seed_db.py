@@ -101,9 +101,7 @@ class Command(BaseCommand):
         if created:
             admin.set_password("password123")
             admin.save()
-            self.stdout.write(
-                self.style.SUCCESS("  - 管理者ユーザーを作成しました: admin@example.com / password123")
-            )
+            self.stdout.write(self.style.SUCCESS("  - 管理者ユーザーを作成しました: admin@example.com / password123"))
         elif admin.lending_limit != 10:
             admin.lending_limit = 10
             admin.save(update_fields=["lending_limit"])
@@ -141,9 +139,7 @@ class Command(BaseCommand):
             for _ in range(random.randint(1, 3)):
                 BookFactory(biblio=biblio, shelf=random.choice(shelves))
 
-        self.stdout.write(
-            f"  - 書誌 {Biblio.objects.count()} 件、蔵書 {Book.objects.count()} 件を作成しました。"
-        )
+        self.stdout.write(f"  - 書誌 {Biblio.objects.count()} 件、蔵書 {Book.objects.count()} 件を作成しました。")
 
     def _create_transaction_data(self, admin, users):
         # お気に入りデータの作成
@@ -417,4 +413,3 @@ class Command(BaseCommand):
         self.stdout.write(f"  - 予約レコード数   : {Reservation.objects.count()}")
         self.stdout.write(f"  - お気に入り数     : {Favorite.objects.count()}")
         self.stdout.write("  - ログイン情報: admin@example.com / password123")
-

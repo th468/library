@@ -1,6 +1,7 @@
 from datetime import timedelta
+
 from core.models.mixins import RenameUniqueFieldsMixin
-import time
+
 
 class BaseModelBehaviorMixin:
     """BaseModelの基本機能を検証するためのツールキット"""

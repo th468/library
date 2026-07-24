@@ -6,16 +6,14 @@ from catalog.factories import BiblioFactory, BookFactory, FloorFactory, ShelfFac
 
 User = get_user_model()
 
+
 class BookViewsTest(TestCase):
     """
     リファクタリング後の書籍関連ビューのテスト
     """
+
     def setUp(self):
-        self.user = User.objects.create_user(
-            email="user@example.com",
-            em_num="U001",
-            password="password123"
-        )
+        self.user = User.objects.create_user(email="user@example.com", em_num="U001", password="password123")
         self.floor = FloorFactory()
         self.shelf = ShelfFactory(floor=self.floor)
         self.biblio = BiblioFactory(title="テスト本")
@@ -23,14 +21,14 @@ class BookViewsTest(TestCase):
 
     def test_biblio_search_list_view_status(self):
         """蔵書検索一覧が正常に表示されるか"""
-        response = self.client.get(reverse('catalog:booklist'))
+        response = self.client.get(reverse("catalog:booklist"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'catalog/book_list.html')
-        self.assertIn('biblios', response.context)
+        self.assertTemplateUsed(response, "catalog/book_list.html")
+        self.assertIn("biblios", response.context)
 
     def test_biblio_detail_view_login_required(self):
         """詳細画面はログイン必須であるか"""
-        url = reverse('catalog:bookdetail', kwargs={'pk': self.biblio.pk})
+        url = reverse("catalog:bookdetail", kwargs={"pk": self.biblio.pk})
         response = self.client.get(url)
         # 未ログイン時はログイン画面へリダイレクト
         self.assertRedirects(response, f"{reverse('accounts:login')}?next={url}")
@@ -38,9 +36,9 @@ class BookViewsTest(TestCase):
     def test_biblio_detail_view_success(self):
         """ログイン時に詳細画面が正常に表示され、関連データが含まれているか"""
         self.client.login(email="user@example.com", password="password123")
-        response = self.client.get(reverse('catalog:bookdetail', kwargs={'pk': self.biblio.pk}))
+        response = self.client.get(reverse("catalog:bookdetail", kwargs={"pk": self.biblio.pk}))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['biblio'], self.biblio)
+        self.assertEqual(response.context["biblio"], self.biblio)
         # 在庫(Book)が含まれているか検証
         self.assertContains(response, f"No.{self.book.count}")
 
@@ -50,9 +48,9 @@ class BookViewsTest(TestCase):
         BiblioFactory(title="Djangoガイド")
 
         # 'Python' で検索
-        response = self.client.get(reverse('catalog:booklist'), {'q': 'Python'})
-        self.assertEqual(len(response.context['biblios']), 1)
-        self.assertEqual(response.context['biblios'][0].title, "Python入門")
+        response = self.client.get(reverse("catalog:booklist"), {"q": "Python"})
+        self.assertEqual(len(response.context["biblios"]), 1)
+        self.assertEqual(response.context["biblios"][0].title, "Python入門")
 
     def test_lib_status_context_provided(self):
         """ログイン時、一覧および詳細ビューにユーザー状態（お気に入り等）が注入されているか"""
@@ -66,32 +64,33 @@ class BookViewsTest(TestCase):
         self.client.login(email="user@example.com", password="password123")
 
         # 1. 一覧ビューの検証
-        list_res = self.client.get(reverse('catalog:booklist'))
-        self.assertIn('user_favorite_ids', list_res.context)
-        self.assertIn(self.biblio.id, list_res.context['user_favorite_ids'])
-        self.assertIn(self.biblio.id, list_res.context['user_lending_ids'])
+        list_res = self.client.get(reverse("catalog:booklist"))
+        self.assertIn("user_favorite_ids", list_res.context)
+        self.assertIn(self.biblio.id, list_res.context["user_favorite_ids"])
+        self.assertIn(self.biblio.id, list_res.context["user_lending_ids"])
 
         # 2. 詳細ビューの検証
-        detail_res = self.client.get(reverse('catalog:bookdetail', kwargs={'pk': self.biblio.pk}))
-        self.assertIn('user_favorite_ids', detail_res.context)
-        self.assertIn('user_lent_book_ids', detail_res.context)
-        self.assertIn(self.book.id, detail_res.context['user_lent_book_ids'])
-        self.assertIn('user_ready_book_ids', detail_res.context)
+        detail_res = self.client.get(reverse("catalog:bookdetail", kwargs={"pk": self.biblio.pk}))
+        self.assertIn("user_favorite_ids", detail_res.context)
+        self.assertIn("user_lent_book_ids", detail_res.context)
+        self.assertIn(self.book.id, detail_res.context["user_lent_book_ids"])
+        self.assertIn("user_ready_book_ids", detail_res.context)
 
     def test_lib_status_anonymous_user(self):
         """未ログイン時でも、context に空のセットが含まれ、エラーにならないか"""
-        response = self.client.get(reverse('catalog:booklist'))
+        response = self.client.get(reverse("catalog:booklist"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['user_favorite_ids'], set())
-        self.assertEqual(response.context['user_lending_ids'], set())
-        self.assertEqual(response.context['user_lent_book_ids'], set())
-        self.assertEqual(response.context['user_ready_book_ids'], set())
+        self.assertEqual(response.context["user_favorite_ids"], set())
+        self.assertEqual(response.context["user_lending_ids"], set())
+        self.assertEqual(response.context["user_lent_book_ids"], set())
+        self.assertEqual(response.context["user_ready_book_ids"], set())
 
     def test_favorite_toggle_re_enable_logic(self):
         """お気に入りの登録・解除・再登録が正常に動作するか（論理削除の考慮）"""
         from catalog.models import Favorite
+
         self.client.login(email="user@example.com", password="password123")
-        url = reverse('catalog:favorite_toggle', kwargs={'pk': self.biblio.pk})
+        url = reverse("catalog:favorite_toggle", kwargs={"pk": self.biblio.pk})
 
         # 1. 登録
         self.client.post(url)
@@ -113,9 +112,9 @@ class BookViewsTest(TestCase):
         inactive_biblio.is_active = False
         inactive_biblio.save()
 
-        response = self.client.get(reverse('catalog:booklist'))
+        response = self.client.get(reverse("catalog:booklist"))
         self.assertEqual(response.status_code, 200)
-        biblios = response.context['biblios']
+        biblios = response.context["biblios"]
         self.assertNotIn(inactive_biblio, biblios)
 
     def test_biblio_detail_view_404_for_inactive_biblio(self):
@@ -125,7 +124,7 @@ class BookViewsTest(TestCase):
         inactive_biblio.is_active = False
         inactive_biblio.save()
 
-        url = reverse('catalog:bookdetail', kwargs={'pk': inactive_biblio.pk})
+        url = reverse("catalog:bookdetail", kwargs={"pk": inactive_biblio.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
@@ -136,7 +135,7 @@ class BookViewsTest(TestCase):
         inactive_book.is_active = False
         inactive_book.save()
 
-        response = self.client.get(reverse('catalog:bookdetail', kwargs={'pk': self.biblio.pk}))
+        response = self.client.get(reverse("catalog:bookdetail", kwargs={"pk": self.biblio.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, f"No.{self.book.count}")
         self.assertNotContains(response, f"No.{inactive_book.count}")
@@ -146,12 +145,9 @@ class ShelfViewsTest(TestCase):
     """
     本棚詳細ビュー（アクセス制限付き）のテスト
     """
+
     def setUp(self):
-        self.user = User.objects.create_user(
-            email="user@example.com",
-            em_num="U001",
-            password="password123"
-        )
+        self.user = User.objects.create_user(email="user@example.com", em_num="U001", password="password123")
         self.floor = FloorFactory(name="3F")
         self.shelf = ShelfFactory(name="棚-ABC", floor=self.floor)
         self.biblio = BiblioFactory(title="テスト本")
@@ -159,14 +155,14 @@ class ShelfViewsTest(TestCase):
 
     def test_shelf_detail_login_required(self):
         """詳細画面はログイン必須であるか"""
-        url = reverse('catalog:shelf_detail', kwargs={'pk': self.shelf.pk})
+        url = reverse("catalog:shelf_detail", kwargs={"pk": self.shelf.pk})
         response = self.client.get(url)
         self.assertRedirects(response, f"{reverse('accounts:login')}?next={url}")
 
     def test_shelf_detail_denied_without_lending_or_reservation(self):
         """貸出も準備完了の予約もない場合はアクセス拒否(403)されるか"""
         self.client.login(email="user@example.com", password="password123")
-        url = reverse('catalog:shelf_detail', kwargs={'pk': self.shelf.pk})
+        url = reverse("catalog:shelf_detail", kwargs={"pk": self.shelf.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
 
@@ -178,11 +174,11 @@ class ShelfViewsTest(TestCase):
         LendingFactory.create(user=self.user, book=self.book, status=1)
 
         self.client.login(email="user@example.com", password="password123")
-        url = reverse('catalog:shelf_detail', kwargs={'pk': self.shelf.pk})
+        url = reverse("catalog:shelf_detail", kwargs={"pk": self.shelf.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['shelf'], self.shelf)
-        self.assertTemplateUsed(response, 'catalog/shelf_detail.html')
+        self.assertEqual(response.context["shelf"], self.shelf)
+        self.assertTemplateUsed(response, "catalog/shelf_detail.html")
 
     def test_shelf_detail_allowed_with_ready_reservation(self):
         """準備完了の予約がある場合はアクセス許可(200)されるか"""
@@ -192,9 +188,7 @@ class ShelfViewsTest(TestCase):
         ReservationFactory.create(user=self.user, biblio=self.biblio, book=self.book, status=2)
 
         self.client.login(email="user@example.com", password="password123")
-        url = reverse('catalog:shelf_detail', kwargs={'pk': self.shelf.pk})
+        url = reverse("catalog:shelf_detail", kwargs={"pk": self.shelf.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['shelf'], self.shelf)
-
-
+        self.assertEqual(response.context["shelf"], self.shelf)

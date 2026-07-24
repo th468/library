@@ -12,6 +12,7 @@ class UserCreationForm(DjangoUserCreationForm):
     ユーザー登録用フォーム
     カスタムユーザーモデルに対応
     """
+
     class Meta:
         model = User
         fields = ("em_num", "email")
@@ -28,6 +29,7 @@ class ProfileEditForm(forms.ModelForm):
     """
     プロフィール編集用フォーム
     """
+
     class Meta:
         model = User
         fields = ("name", "department")
@@ -43,12 +45,12 @@ class UserLoginForm(AuthenticationForm):
     ログイン用フォーム
     Django標準のLoginViewに適合させるためAuthenticationFormを継承
     """
+
     username = forms.EmailField(
         label="メールアドレス",
         max_length=255,
-        widget=forms.EmailInput(attrs={"placeholder": "example@company.com", "autofocus": True})
+        widget=forms.EmailInput(attrs={"placeholder": "example@company.com", "autofocus": True}),
     )
     password = forms.CharField(
-        label="パスワード",
-        widget=forms.PasswordInput(attrs={"placeholder": "パスワードを入力"})
+        label="パスワード", widget=forms.PasswordInput(attrs={"placeholder": "パスワードを入力"})
     )

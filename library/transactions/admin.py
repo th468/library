@@ -33,8 +33,8 @@ class LendingAdmin(BaseLogicalDeleteAdmin):
 
     # 編集画面の設定
     readonly_fields = (
-        "user",       # 貸出後の利用者変更を禁止
-        "book",       # 貸出後の書籍変更を禁止
+        "user",  # 貸出後の利用者変更を禁止
+        "book",  # 貸出後の書籍変更を禁止
         "created_at",
         "updated_at",
     )
@@ -93,8 +93,8 @@ class ReservationAdmin(BaseLogicalDeleteAdmin):
 
     # 編集画面の設定
     readonly_fields = (
-        "user",     # 予約後の利用者変更を禁止
-        "biblio",   # 予約後の書誌変更を禁止
+        "user",  # 予約後の利用者変更を禁止
+        "biblio",  # 予約後の書誌変更を禁止
         "created_at",
         "updated_at",
     )

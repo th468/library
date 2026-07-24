@@ -117,7 +117,6 @@ class BookModelTest(TestCase, BaseModelTestMixin):
 
     # ② 個別テスト項目
 
-
     def test_can_be_reserved_logic(self):
         """正常系 → 異常系: statusに応じたcan_be_reservedの挙動テスト"""
         model_class = self.factory_class._meta.model
@@ -135,6 +134,7 @@ class BookModelTest(TestCase, BaseModelTestMixin):
         """statusおよび予約状況に応じたcan_be_lent_toの挙動テスト"""
         from accounts.factories import UserFactory
         from transactions.factories import ReservationFactory
+
         Book = self.factory_class._meta.model
 
         user1 = UserFactory()

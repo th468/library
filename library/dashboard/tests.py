@@ -11,6 +11,7 @@ class DashboardIndexViewTest(TestCase):
     """
     DashboardIndexView のテスト
     """
+
     def test_index_view_anonymous(self):
         """未ログイン時は landing.html を使用する"""
         response = self.client.get(reverse("dashboard:index"))
@@ -34,6 +35,7 @@ class LendingHistoryViewTest(TestCase):
     """
     LendingHistoryView のテスト
     """
+
     def setUp(self):
         self.user = UserFactory(password="password123")
         self.other_user = UserFactory()
@@ -42,10 +44,7 @@ class LendingHistoryViewTest(TestCase):
         self.biblio1 = BiblioFactory(title="マイブック")
         self.book1 = BookFactory(biblio=self.biblio1)
         self.lending1 = LendingFactory(
-            user=self.user,
-            book=self.book1,
-            status=Lending.Status.RETURNED,
-            return_date=timezone.now().date()
+            user=self.user, book=self.book1, status=Lending.Status.RETURNED, return_date=timezone.now().date()
         )
 
         # 自分の貸出中（履歴には出ないはず）
@@ -57,10 +56,7 @@ class LendingHistoryViewTest(TestCase):
         self.biblio3 = BiblioFactory(title="他人の本")
         self.book3 = BookFactory(biblio=self.biblio3)
         self.lending3 = LendingFactory(
-            user=self.other_user,
-            book=self.book3,
-            status=Lending.Status.RETURNED,
-            return_date=timezone.now().date()
+            user=self.other_user, book=self.book3, status=Lending.Status.RETURNED, return_date=timezone.now().date()
         )
 
     def test_lending_history_login_required(self):

@@ -132,6 +132,7 @@ class LendingManager(BaseManager.from_queryset(LendingQuerySet)):
                     raise ValidationError("これ以上延長することはできません。")
 
                 from .models import Reservation
+
                 if Reservation.objects.waiting().filter(biblio=book.biblio).exists():
                     raise ValidationError("この本には次に予約が入っているため、延長できません。")
 
@@ -200,6 +201,7 @@ class Lending(BaseModel):
             return False
 
         from .models import Reservation
+
         # この書誌を待っている「入荷待ち」の予約があるかチェック
         if Reservation.objects.waiting().filter(biblio=self.book.biblio).exists():
             return False

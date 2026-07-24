@@ -11,6 +11,7 @@ User = get_user_model()
 
 class UserLoginView(LoginView):
     """ログインビュー"""
+
     form_class = UserLoginForm
     template_name = "accounts/login.html"
     redirect_authenticated_user = True
@@ -21,11 +22,13 @@ class UserLoginView(LoginView):
 
 class UserLogoutView(LogoutView):
     """ログアウトビュー"""
+
     next_page = "accounts:login"
 
 
 class UserRegistrationView(CreateView):
     """ユーザー登録ビュー"""
+
     model = User
     form_class = UserCreationForm
     template_name = "accounts/registration.html"
@@ -34,6 +37,7 @@ class UserRegistrationView(CreateView):
 
 class ProfileDetailView(LoginRequiredMixin, DetailView):
     """プロフィール詳細ビュー"""
+
     model = User
     template_name = "accounts/profile_detail.html"
     context_object_name = "profile_user"
@@ -45,6 +49,7 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     """プロフィール編集ビュー"""
+
     model = User
     form_class = ProfileEditForm
     template_name = "accounts/profile_edit.html"
@@ -61,6 +66,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
 class UserPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     """パスワード変更ビュー"""
+
     template_name = "accounts/password_change.html"
     success_url = reverse_lazy("accounts:password_change_done")
 
@@ -72,4 +78,5 @@ class UserPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
 
 class UserPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
     """パスワード変更完了ビュー"""
+
     template_name = "accounts/password_change_done.html"

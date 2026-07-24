@@ -81,9 +81,7 @@ class CoreTagsTestCase(TestCase):
 
         # カスタムCSSクラス
         request = self.factory.get(target_path)
-        self.assertEqual(
-            active_link({"request": request}, target_url_name, "is-active"), "is-active"
-        )
+        self.assertEqual(active_link({"request": request}, target_url_name, "is-active"), "is-active")
 
     def test_render_breadcrumbs(self):
         """URLパスから階層的なパンくずリストが生成されるか"""
