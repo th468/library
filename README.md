@@ -266,7 +266,7 @@ python library/manage.py migrate
 ### 5.3. デモデータの自動生成（シードデータの挿入）
 FakerとFactory Boyを利用し、テスト用のダミーデータ（部署、ユーザー、本棚、蔵書、貸出履歴など）を一括生成します。
 ```bash
-python library/seed_data.py
+python library/manage.py seed_db
 ```
 > [!WARNING]
 > このスクリプトを実行すると、既存のデータベースレコード（管理者以外の全データ）が一掃（`hard_delete`）され、新しく再生成されます。

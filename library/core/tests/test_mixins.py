@@ -1,5 +1,6 @@
+from datetime import timedelta
 from core.models.mixins import RenameUniqueFieldsMixin
-
+import time
 
 class BaseModelBehaviorMixin:
     """BaseModelの基本機能を検証するためのツールキット"""
@@ -26,7 +27,11 @@ class BaseModelBehaviorMixin:
         """インスタンスの delete() による論理削除を検証"""
         model, name = self._get_meta(factory)
         obj = factory.create()
-        old_updated_at = obj.updated_at
+
+        # delete() による更新を即座に判定できるよう、DB上の updated_at を一時的に過去時刻に設定
+        past_time = obj.updated_at - timedelta(seconds=10)
+        model.all_objects.filter(pk=obj.pk).update(updated_at=past_time)
+        old_updated_at = past_time
 
         # 実行
         obj.delete()
