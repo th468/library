@@ -1,3 +1,16 @@
+[project]
+name = "library-portfolio"
+version = "0.1.0"
+description = "Distributed Library Management Application Prototype"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=6.0.7",
+    "django-environ>=0.14.0",
+    "django-widget-tweaks>=1.5.1",
+    "pillow>=12.3.0",
+]
+
 [tool.ruff]
 # 除外するディレクトリ
 exclude = [
@@ -28,6 +41,8 @@ max-complexity = 10
 [tool.mypy]
 # Djangoプラグインを有効化
 plugins = ["mypy_django_plugin.main"]
+mypy_path = "library"
+
 
 # 型ヒントがない関数もチェック対象にする
 disallow_untyped_defs = false
@@ -53,3 +68,12 @@ ignore_errors = true
 
 [tool.django-stubs]
 django_settings_module = "config.settings"
+
+[dependency-groups]
+dev = [
+    "django-stubs>=6.0.7",
+    "factory-boy>=3.3.3",
+    "faker>=40.35.0",
+    "mypy>=2.3.0",
+    "ruff>=0.16.0",
+]
